@@ -8,6 +8,7 @@ import Timeline from "@/components/Timeline";
 import LogSightingButton from "@/components/LogSightingButton";
 import PhotoLightbox from "@/components/PhotoLightbox";
 import PawPrint from "@/components/PawPrint";
+import SubmitButton from "@/components/SubmitButton";
 import {
   assignSelfAsCaregiver,
   leaveCaregiverTeam,
@@ -507,9 +508,9 @@ export default async function DogPassportPage({
             placeholder="Notes"
             className="input"
           />
-          <button className="btn-outline self-start">
+          <SubmitButton pendingText="Submitting…" className="btn-outline self-start">
             Submit health event
-          </button>
+          </SubmitButton>
         </form>
       </section>
 
@@ -598,9 +599,9 @@ export default async function DogPassportPage({
             placeholder="Photo link or description of the injury"
             className="input"
           />
-          <button className="btn-danger self-start">
+          <SubmitButton pendingText="Reporting…" className="btn-danger self-start">
             Report emergency
-          </button>
+          </SubmitButton>
         </form>
       </section>
 

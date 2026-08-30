@@ -1,5 +1,6 @@
 import { createDog } from "@/app/dogs/actions";
 import { requireProfile } from "@/lib/auth";
+import SubmitButton from "@/components/SubmitButton";
 
 export default async function NewDogPage({
   searchParams,
@@ -14,7 +15,7 @@ export default async function NewDogPage({
       <h1 className="text-3xl font-bold">Give a dog a voice 🐾</h1>
       <p className="mt-1 text-sm text-muted">
         This creates a persistent Dogesh Bhai ID for the dog. Fill in what you
-        know now — you can add photos and health history afterwards.
+        know now — you can add more later.
       </p>
 
       {error && (
@@ -31,6 +32,15 @@ export default async function NewDogPage({
             required
             className="input mt-1 w-full"
             placeholder="Moti"
+          />
+        </label>
+
+        <label className="text-sm font-medium">
+          Photo URL
+          <input
+            name="photo_url"
+            className="input mt-1 w-full"
+            placeholder="Paste a link to a clear photo of the dog"
           />
         </label>
 
@@ -83,9 +93,9 @@ export default async function NewDogPage({
           />
         </label>
 
-        <button type="submit" className="btn-primary mt-2 w-full py-3">
+        <SubmitButton pendingText="Registering…" className="btn-primary mt-2 w-full py-3">
           Register this dog 🐾
-        </button>
+        </SubmitButton>
       </form>
     </main>
   );

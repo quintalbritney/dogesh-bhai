@@ -38,6 +38,37 @@ export async function unarchiveDog(dogId: string) {
   revalidatePath("/dogs");
 }
 
+export async function archiveDuplicateNamedDogs() {
+  await requireRole(["admin"]);
+  const supabase = await createClient();
+
+  const { data: dogs } = await supabase
+    .from("dogs")
+    .select("id, name, created_at")
+    .eq("archived", false)
+    .order("created_at", { ascending: true });
+
+  const seenNames = new Set<string>();
+  const duplicateIds: string[] = [];
+
+  for (const dog of dogs ?? []) {
+    if (seenNames.has(dog.name)) {
+      duplicateIds.push(dog.id);
+    } else {
+      seenNames.add(dog.name);
+    }
+  }
+
+  if (duplicateIds.length > 0) {
+    await supabase.from("dogs").update({ archived: true }).in("id", duplicateIds);
+  }
+
+  revalidatePath("/console");
+  revalidatePath("/dogs");
+  revalidatePath("/map");
+  revalidatePath("/");
+}
+
 export async function seedDemoDogs() {
   const profile = await requireRole(["admin"]);
   const supabase = await createClient();

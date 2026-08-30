@@ -17,6 +17,7 @@ export async function createDog(formData: FormData) {
   const coat_notes = String(formData.get("coat_notes") ?? "") || null;
   const markers = String(formData.get("markers") ?? "") || null;
   const location_label = String(formData.get("location_label") ?? "") || null;
+  const photo_url = String(formData.get("photo_url") ?? "") || null;
 
   if (!name) redirect("/dogs/new?error=Dog+name+is+required");
 
@@ -29,6 +30,7 @@ export async function createDog(formData: FormData) {
       coat_notes,
       markers,
       location_label,
+      photo_url,
       created_by: profile.id,
     })
     .select()

@@ -2,7 +2,12 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/lib/auth";
 import { yesterdayISODate } from "@/lib/dates";
-import { archiveDog, unarchiveDog, seedDemoDogs } from "@/app/console/actions";
+import {
+  archiveDog,
+  unarchiveDog,
+  seedDemoDogs,
+  archiveDuplicateNamedDogs,
+} from "@/app/console/actions";
 import {
   mergeDuplicateFlag,
   dismissDuplicateFlag,
@@ -73,9 +78,16 @@ export default async function ConsolePage() {
           {isAdmin ? "Admin console" : "NGO console"}
         </h1>
         {isAdmin && (
-          <form action={seedDemoDogs}>
-            <button className="btn-outline btn-sm">🐾 Seed demo dogs</button>
-          </form>
+          <div className="flex gap-2">
+            <form action={seedDemoDogs}>
+              <button className="btn-outline btn-sm">🐾 Seed demo dogs</button>
+            </form>
+            <form action={archiveDuplicateNamedDogs}>
+              <button className="btn-outline btn-sm" title="Keeps the oldest of each repeated name, archives the rest">
+                🧹 Clean up duplicate names
+              </button>
+            </form>
+          </div>
         )}
       </div>
 

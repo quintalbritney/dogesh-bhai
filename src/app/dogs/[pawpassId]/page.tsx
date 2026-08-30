@@ -57,6 +57,12 @@ const STATUS_LABEL: Record<string, string> = {
   care_gap: "🔴 Care gap",
 };
 
+const STATUS_CHIP_CLASS: Record<string, string> = {
+  well_cared_for: "bg-status-good/15 text-status-good border-status-good/30",
+  attention_needed: "bg-status-warn/15 text-status-warn border-status-warn/30",
+  care_gap: "bg-status-bad/15 text-status-bad border-status-bad/30",
+};
+
 export default async function DogPassportPage({
   params,
 }: {
@@ -168,35 +174,37 @@ export default async function DogPassportPage({
             />
           )}
           <div>
-            <p className="font-mono text-xs text-neutral-400">{dog.pawpass_id}</p>
-            <h1 className="text-3xl font-semibold">{dog.name}</h1>
-            <p className="text-sm text-neutral-500">
+            <p className="font-mono text-xs text-muted">{dog.pawpass_id}</p>
+            <h1 className="text-3xl font-extrabold">{dog.name}</h1>
+            <p className="text-sm text-muted">
               {dog.location_label ?? "Location not set"}
             </p>
           </div>
         </div>
-        <span className="whitespace-nowrap rounded-full border px-3 py-1 text-sm">
+        <span
+          className={`whitespace-nowrap rounded-full border px-3 py-1 text-sm font-medium ${STATUS_CHIP_CLASS[dog.status]}`}
+        >
           {STATUS_LABEL[dog.status]}
         </span>
       </div>
 
       {canEdit && (
-        <details className="mt-3 text-sm text-neutral-500">
+        <details className="mt-3 text-sm text-muted">
           <summary className="cursor-pointer">Edit dog information</summary>
           <form
             action={updateDog.bind(null, dog.id, pawpassId)}
-            className="mt-2 flex flex-col gap-2 rounded-md border p-3"
+            className="mt-2 flex flex-col gap-2 card p-3"
           >
             <input
               name="name"
               defaultValue={dog.name}
               required
-              className="rounded-md border px-2 py-1.5 text-sm"
+              className="input"
             />
             <select
               name="sex"
               defaultValue={dog.sex}
-              className="rounded-md border px-2 py-1.5 text-sm"
+              className="input"
             >
               <option value="unknown">Not sure</option>
               <option value="male">Male</option>
@@ -206,33 +214,33 @@ export default async function DogPassportPage({
               name="age_estimate"
               defaultValue={dog.age_estimate ?? ""}
               placeholder="Approximate age"
-              className="rounded-md border px-2 py-1.5 text-sm"
+              className="input"
             />
             <input
               name="coat_notes"
               defaultValue={dog.coat_notes ?? ""}
               placeholder="Coat / appearance"
-              className="rounded-md border px-2 py-1.5 text-sm"
+              className="input"
             />
             <input
               name="markers"
               defaultValue={dog.markers ?? ""}
               placeholder="Identification markers"
-              className="rounded-md border px-2 py-1.5 text-sm"
+              className="input"
             />
             <input
               name="location_label"
               defaultValue={dog.location_label ?? ""}
               placeholder="Usual location"
-              className="rounded-md border px-2 py-1.5 text-sm"
+              className="input"
             />
             <input
               name="photo_url"
               defaultValue={dog.photo_url ?? ""}
               placeholder="Photo URL"
-              className="rounded-md border px-2 py-1.5 text-sm"
+              className="input"
             />
-            <button className="self-start rounded-md border px-3 py-1.5 text-sm">
+            <button className="btn-outline self-start">
               Save changes
             </button>
           </form>
@@ -241,13 +249,13 @@ export default async function DogPassportPage({
 
       <section className="mt-8 flex flex-wrap items-start gap-6">
         <div>
-          <h2 className="text-lg font-medium">Location</h2>
+          <h2 className="text-xl font-bold">Location</h2>
           {lastPing ? (
-            <p className="mt-1 text-sm text-neutral-500">
+            <p className="mt-1 text-sm text-muted">
               Last seen {new Date(lastPing.created_at).toLocaleString()}
             </p>
           ) : (
-            <p className="mt-1 text-sm text-neutral-500">
+            <p className="mt-1 text-sm text-muted">
               No sightings logged yet.
             </p>
           )}
@@ -257,8 +265,8 @@ export default async function DogPassportPage({
         </div>
 
         <div>
-          <h2 className="text-lg font-medium">QR tag</h2>
-          <p className="mt-1 text-sm text-neutral-500">
+          <h2 className="text-xl font-bold">QR tag</h2>
+          <p className="mt-1 text-sm text-muted">
             Print this and attach it to {dog.name}&apos;s collar tag.
           </p>
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -270,34 +278,34 @@ export default async function DogPassportPage({
         </div>
       </section>
 
-      <details className="mt-4 text-sm text-neutral-500">
+      <details className="mt-4 text-sm text-muted">
         <summary className="cursor-pointer">
           This looks like a dog we already have a record for
         </summary>
         <form
           action={flagPossibleDuplicate.bind(null, dog.id, pawpassId)}
-          className="mt-2 flex flex-col gap-2 rounded-md border p-3"
+          className="mt-2 flex flex-col gap-2 card p-3"
         >
           <input
             name="other_pawpass_id"
             placeholder="Other dog's PawPass ID, e.g. PP-PIL-000002"
-            className="rounded-md border px-2 py-1.5 text-sm"
+            className="input"
           />
           <input
             name="note"
             placeholder="Why do you think it's the same dog?"
-            className="rounded-md border px-2 py-1.5 text-sm"
+            className="input"
           />
-          <button className="self-start rounded-md border px-3 py-1.5 text-sm">
+          <button className="btn-outline self-start">
             Flag as possible duplicate
           </button>
         </form>
       </details>
 
       <section className="mt-8">
-        <h2 className="text-lg font-medium">Care team</h2>
+        <h2 className="text-xl font-bold">Care team</h2>
         {activeAssignments.length === 0 && (
-          <p className="mt-1 text-sm text-neutral-500">
+          <p className="mt-1 text-sm text-muted">
             No caregiver yet — this dog has a care gap.
           </p>
         )}
@@ -330,7 +338,7 @@ export default async function DogPassportPage({
                 hasPrimary ? "backup" : "primary",
               )}
             >
-              <button className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm text-white">
+              <button className="btn-primary">
                 {hasPrimary
                   ? `Help care for ${dog.name} (backup)`
                   : `Help care for ${dog.name} (primary)`}
@@ -341,13 +349,13 @@ export default async function DogPassportPage({
       </section>
 
       <section className="mt-8">
-        <h2 className="text-lg font-medium">Care schedule</h2>
+        <h2 className="text-xl font-bold">Care schedule</h2>
         {mySchedules.length === 0 ? (
           <div className="mt-2">
-            <p className="text-sm text-neutral-500">No schedule set up yet.</p>
+            <p className="text-sm text-muted">No schedule set up yet.</p>
             {isCaregiver && (
               <form action={createFeedingSchedule.bind(null, dog.id, pawpassId)}>
-                <button className="mt-2 rounded-md border px-3 py-1.5 text-sm">
+                <button className="btn-outline mt-2">
                   Start a daily feeding schedule
                 </button>
               </form>
@@ -356,7 +364,7 @@ export default async function DogPassportPage({
         ) : (
           <ul className="mt-2 flex flex-col gap-3">
             {scheduleTaskRows.map(({ schedule, todayDone, yesterdayDone }) => (
-              <li key={schedule.id} className="rounded-md border p-3">
+              <li key={schedule.id} className="card p-3">
                 <p className="text-sm font-medium capitalize">
                   {schedule.frequency} {schedule.task_type}
                 </p>
@@ -376,8 +384,8 @@ export default async function DogPassportPage({
                             undefined,
                           )}
                         >
-                          <button className="rounded-md bg-neutral-900 px-2 py-1 text-xs text-white">
-                            I&apos;ve fed {dog.name}
+                          <button className="btn-primary btn-sm">
+                            Mark as fed ❤️
                           </button>
                         </form>
                       )}
@@ -397,7 +405,7 @@ export default async function DogPassportPage({
                           yesterday,
                         )}
                       >
-                        <button className="rounded-md border px-2 py-1 text-xs">
+                        <button className="btn-outline btn-sm">
                           Log it now
                         </button>
                       </form>
@@ -411,10 +419,10 @@ export default async function DogPassportPage({
       </section>
 
       <section className="mt-8">
-        <h2 className="text-lg font-medium">Health</h2>
+        <h2 className="text-xl font-bold">Health</h2>
         <ul className="mt-2 flex flex-col gap-2">
           {((healthEvents ?? []) as HealthEvent[]).map((event) => (
-            <li key={event.id} className="rounded-md border p-3 text-sm">
+            <li key={event.id} className="card p-3 text-sm">
               <div className="flex items-center justify-between gap-2">
                 <span className="font-medium capitalize">
                   {event.type.replace("_", " ")} — {event.event_date}
@@ -422,9 +430,9 @@ export default async function DogPassportPage({
                 <VerificationBadge status={event.verification_status} />
               </div>
               {event.provider && (
-                <p className="text-neutral-500">Provider: {event.provider}</p>
+                <p className="text-muted">Provider: {event.provider}</p>
               )}
-              {event.notes && <p className="text-neutral-500">{event.notes}</p>}
+              {event.notes && <p className="text-muted">{event.notes}</p>}
               {canVerify && event.verification_status === "community" && (
                 <div className="mt-2 flex gap-2">
                   <form
@@ -436,7 +444,7 @@ export default async function DogPassportPage({
                       "verified",
                     )}
                   >
-                    <button className="rounded-md bg-neutral-900 px-2 py-1 text-xs text-white">
+                    <button className="btn-primary btn-sm">
                       Verify
                     </button>
                   </form>
@@ -449,7 +457,7 @@ export default async function DogPassportPage({
                       "disputed",
                     )}
                   >
-                    <button className="rounded-md border px-2 py-1 text-xs">
+                    <button className="btn-outline btn-sm">
                       Dispute
                     </button>
                   </form>
@@ -458,19 +466,19 @@ export default async function DogPassportPage({
             </li>
           ))}
           {(healthEvents ?? []).length === 0 && (
-            <p className="text-sm text-neutral-500">No health events recorded.</p>
+            <p className="text-sm text-muted">No health events recorded.</p>
           )}
         </ul>
 
         <form
           action={submitHealthEvent.bind(null, dog.id, pawpassId)}
-          className="mt-3 flex flex-col gap-2 rounded-md border p-3"
+          className="mt-3 flex flex-col gap-2 card p-3"
         >
           <p className="text-sm font-medium">Add a health event</p>
           <select
             name="type"
             required
-            className="rounded-md border px-2 py-1.5 text-sm"
+            className="input"
           >
             <option value="">Type…</option>
             <option value="vaccination">Vaccination</option>
@@ -483,33 +491,33 @@ export default async function DogPassportPage({
             type="date"
             name="event_date"
             defaultValue={today}
-            className="rounded-md border px-2 py-1.5 text-sm"
+            className="input"
           />
           <input
             name="provider"
             placeholder="Provider (e.g. ABC Veterinary Clinic)"
-            className="rounded-md border px-2 py-1.5 text-sm"
+            className="input"
           />
           <textarea
             name="notes"
             placeholder="Notes"
-            className="rounded-md border px-2 py-1.5 text-sm"
+            className="input"
           />
-          <button className="self-start rounded-md border px-3 py-1.5 text-sm">
+          <button className="btn-outline self-start">
             Submit health event
           </button>
         </form>
       </section>
 
       <section className="mt-8">
-        <h2 className="text-lg font-medium">Emergency cases</h2>
+        <h2 className="text-xl font-bold">Emergency cases</h2>
         <ul className="mt-2 flex flex-col gap-2">
           {((medicalCases ?? []) as MedicalCase[]).map((medicalCase) => {
             const canAct =
               medicalCase.claimed_by === profile.id || canModerateCase;
             const nextStatus = NEXT_CASE_STATUS[medicalCase.status];
             return (
-              <li key={medicalCase.id} className="rounded-md border p-3 text-sm">
+              <li key={medicalCase.id} className="card p-3 text-sm">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-medium capitalize">
                     {medicalCase.severity} severity
@@ -517,10 +525,10 @@ export default async function DogPassportPage({
                   <span>{CASE_STATUS_LABEL[medicalCase.status]}</span>
                 </div>
                 {medicalCase.location_label && (
-                  <p className="text-neutral-500">{medicalCase.location_label}</p>
+                  <p className="text-muted">{medicalCase.location_label}</p>
                 )}
                 {medicalCase.evidence_url && (
-                  <p className="text-neutral-500">{medicalCase.evidence_url}</p>
+                  <p className="text-muted">{medicalCase.evidence_url}</p>
                 )}
                 <div className="mt-2 flex gap-2">
                   {medicalCase.status === "reported" && (
@@ -532,7 +540,7 @@ export default async function DogPassportPage({
                         pawpassId,
                       )}
                     >
-                      <button className="rounded-md bg-neutral-900 px-2 py-1 text-xs text-white">
+                      <button className="btn-primary btn-sm">
                         Claim this case
                       </button>
                     </form>
@@ -547,7 +555,7 @@ export default async function DogPassportPage({
                         nextStatus,
                       )}
                     >
-                      <button className="rounded-md border px-2 py-1 text-xs capitalize">
+                      <button className="btn-outline btn-sm capitalize">
                         Mark as {nextStatus.replace("_", " ")}
                       </button>
                     </form>
@@ -557,19 +565,19 @@ export default async function DogPassportPage({
             );
           })}
           {(medicalCases ?? []).length === 0 && (
-            <p className="text-sm text-neutral-500">No emergency cases reported.</p>
+            <p className="text-sm text-muted">No emergency cases reported.</p>
           )}
         </ul>
 
         <form
           action={reportMedicalCase.bind(null, dog.id, pawpassId)}
-          className="mt-3 flex flex-col gap-2 rounded-md border p-3"
+          className="mt-3 flex flex-col gap-2 card p-3"
         >
           <p className="text-sm font-medium">Report a health issue</p>
           <select
             name="severity"
             defaultValue="medium"
-            className="rounded-md border px-2 py-1.5 text-sm"
+            className="input"
           >
             <option value="low">Low</option>
             <option value="medium">Medium</option>
@@ -579,21 +587,21 @@ export default async function DogPassportPage({
           <input
             name="location_label"
             placeholder="Where is the dog right now?"
-            className="rounded-md border px-2 py-1.5 text-sm"
+            className="input"
           />
           <input
             name="evidence_url"
             placeholder="Photo link or description of the injury"
-            className="rounded-md border px-2 py-1.5 text-sm"
+            className="input"
           />
-          <button className="self-start rounded-md bg-red-700 px-3 py-1.5 text-sm text-white">
+          <button className="btn-danger self-start">
             Report emergency
           </button>
         </form>
       </section>
 
       <section className="mt-8">
-        <h2 className="text-lg font-medium">Timeline</h2>
+        <h2 className="text-xl font-bold">Timeline</h2>
         <div className="mt-2">
           <Timeline events={(timelineEvents ?? []) as TimelineEvent[]} />
         </div>

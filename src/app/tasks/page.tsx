@@ -58,12 +58,13 @@ export default async function TasksPage() {
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-10">
-      <h1 className="text-2xl font-semibold">Today&apos;s care</h1>
+      <h1 className="text-3xl font-bold">Today&apos;s care</h1>
+      <p className="quote mt-1 text-muted">Everything you do, do it with love.</p>
 
       {rows.length === 0 && (
-        <p className="mt-4 text-sm text-neutral-500">
+        <p className="mt-4 text-sm text-muted">
           You&apos;re not caring for any dogs yet.{" "}
-          <Link href="/dogs" className="underline">
+          <Link href="/dogs" className="font-medium text-primary underline">
             Browse dogs
           </Link>{" "}
           to become a caregiver.
@@ -72,13 +73,13 @@ export default async function TasksPage() {
 
       {missed.length > 0 && (
         <section className="mt-6">
-          <h2 className="text-sm font-medium text-orange-700">🟠 Care missed</h2>
+          <h2 className="text-sm font-semibold text-status-bad">🟠 Care missed</h2>
           <ul className="mt-2 flex flex-col gap-2">
             {missed.map(({ schedule, dog }) =>
               dog ? (
                 <li
                   key={schedule.id}
-                  className="flex items-center justify-between rounded-md border p-3"
+                  className="card flex items-center justify-between p-3"
                 >
                   <span>
                     {dog.name}&apos;s scheduled care hasn&apos;t been logged.
@@ -92,7 +93,7 @@ export default async function TasksPage() {
                       yesterday,
                     )}
                   >
-                    <button className="rounded-md border px-2 py-1 text-xs">
+                    <button className="btn-outline btn-sm">
                       Log it now
                     </button>
                   </form>
@@ -111,7 +112,7 @@ export default async function TasksPage() {
               dog ? (
                 <li
                   key={schedule.id}
-                  className="flex items-center justify-between rounded-md border p-3"
+                  className="card flex items-center justify-between p-3"
                 >
                   <span>{dog.name} — {schedule.task_type}</span>
                   <form
@@ -123,8 +124,8 @@ export default async function TasksPage() {
                       undefined,
                     )}
                   >
-                    <button className="rounded-md bg-neutral-900 px-2 py-1 text-xs text-white">
-                      I&apos;ve fed {dog.name}
+                    <button className="btn-primary btn-sm">
+                      Mark as fed ❤️
                     </button>
                   </form>
                 </li>

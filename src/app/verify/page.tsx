@@ -25,8 +25,8 @@ export default async function VerificationQueuePage() {
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-10">
-      <h1 className="text-2xl font-semibold">Verification queue</h1>
-      <p className="mt-1 text-sm text-neutral-500">
+      <h1 className="text-3xl font-bold">Verification queue</h1>
+      <p className="mt-1 text-sm text-muted">
         {pending.length} health record{pending.length === 1 ? "" : "s"} awaiting
         verification.
       </p>
@@ -35,7 +35,7 @@ export default async function VerificationQueuePage() {
         {pending.map((event) => {
           const dog = dogsById.get(event.dog_id);
           return (
-            <li key={event.id} className="rounded-md border p-3 text-sm">
+            <li key={event.id} className="card p-3 text-sm">
               <div className="flex items-center justify-between gap-2">
                 <span className="font-medium capitalize">
                   {event.type.replace("_", " ")} — {event.event_date}
@@ -47,9 +47,9 @@ export default async function VerificationQueuePage() {
                 )}
               </div>
               {event.provider && (
-                <p className="text-neutral-500">Provider: {event.provider}</p>
+                <p className="text-muted">Provider: {event.provider}</p>
               )}
-              {event.notes && <p className="text-neutral-500">{event.notes}</p>}
+              {event.notes && <p className="text-muted">{event.notes}</p>}
               {dog && (
                 <div className="mt-2 flex gap-2">
                   <form
@@ -61,7 +61,7 @@ export default async function VerificationQueuePage() {
                       "verified",
                     )}
                   >
-                    <button className="rounded-md bg-neutral-900 px-2 py-1 text-xs text-white">
+                    <button className="btn-primary btn-sm">
                       Verify
                     </button>
                   </form>
@@ -74,7 +74,7 @@ export default async function VerificationQueuePage() {
                       "disputed",
                     )}
                   >
-                    <button className="rounded-md border px-2 py-1 text-xs">
+                    <button className="btn-outline btn-sm">
                       Dispute
                     </button>
                   </form>
@@ -84,7 +84,7 @@ export default async function VerificationQueuePage() {
           );
         })}
         {pending.length === 0 && (
-          <p className="text-sm text-neutral-500">Nothing waiting on you.</p>
+          <p className="text-sm text-muted">Nothing waiting on you.</p>
         )}
       </ul>
     </main>

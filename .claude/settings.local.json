@@ -10,7 +10,9 @@
       "Bash(mkdir -p \"/c/Users/Ashnette Quintal/OneDrive/Desktop/my app/supabase/migrations\")",
       "PowerShell(New-Item -ItemType Directory -Force -Path \"supabase\\\\migrations\")",
       "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); node -v; npm -v)",
-      "PowerShell(& \"C:\\\\Program Files\\\\Git\\\\cmd\\\\git.exe\" --version)"
+      "PowerShell(& \"C:\\\\Program Files\\\\Git\\\\cmd\\\\git.exe\" --version)",
+      "WebSearch",
+      "WebFetch(domain:commons.wikimedia.org)"
     ]
   }
 }

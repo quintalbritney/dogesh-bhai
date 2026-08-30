@@ -68,39 +68,39 @@ export default async function ConsolePage() {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
-      <h1 className="text-2xl font-semibold">
+      <h1 className="text-3xl font-bold">
         {isAdmin ? "Admin console" : "NGO console"}
       </h1>
 
       <section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div className="rounded-md border p-3">
-          <p className="text-2xl font-semibold">{allDogs.length}</p>
-          <p className="text-xs text-neutral-500">
+        <div className="card p-3">
+          <p className="text-2xl font-bold text-primary">{allDogs.length}</p>
+          <p className="text-xs text-muted">
             dogs — 🟢{counts.well} 🟡{counts.attention} 🔴{counts.gap}
           </p>
         </div>
-        <div className="rounded-md border p-3">
-          <p className="text-2xl font-semibold">{missedCount}</p>
-          <p className="text-xs text-neutral-500">missed feeding tasks</p>
+        <div className="card p-3">
+          <p className="text-2xl font-bold text-primary">{missedCount}</p>
+          <p className="text-xs text-muted">missed feeding tasks</p>
         </div>
-        <Link href="/verify" className="rounded-md border p-3 hover:bg-neutral-50">
-          <p className="text-2xl font-semibold">{pendingHealthEvents?.length ?? 0}</p>
-          <p className="text-xs text-neutral-500">health records to verify</p>
+        <Link href="/verify" className="card p-3 transition hover:border-primary">
+          <p className="text-2xl font-bold text-primary">{pendingHealthEvents?.length ?? 0}</p>
+          <p className="text-xs text-muted">health records to verify</p>
         </Link>
-        <div className="rounded-md border p-3">
-          <p className="text-2xl font-semibold">{activeCases?.length ?? 0}</p>
-          <p className="text-xs text-neutral-500">active emergencies</p>
+        <div className="card p-3">
+          <p className="text-2xl font-bold text-primary">{activeCases?.length ?? 0}</p>
+          <p className="text-xs text-muted">active emergencies</p>
         </div>
       </section>
 
       <section className="mt-8">
-        <h2 className="text-lg font-medium">Duplicate flags</h2>
+        <h2 className="text-xl font-bold">Duplicate flags</h2>
         <ul className="mt-2 flex flex-col gap-2">
           {((pendingFlags ?? []) as unknown as (DuplicateFlag & {
             dogA: { name: string; pawpass_id: string } | null;
             dogB: { name: string; pawpass_id: string } | null;
           })[]).map((flag) => (
-            <li key={flag.id} className="rounded-md border p-3 text-sm">
+            <li key={flag.id} className="card p-3 text-sm">
               <p>
                 <Link href={`/dogs/${flag.dogA?.pawpass_id}`} className="underline">
                   {flag.dogA?.name}
@@ -110,7 +110,7 @@ export default async function ConsolePage() {
                   {flag.dogB?.name}
                 </Link>
               </p>
-              {flag.note && <p className="text-neutral-500">{flag.note}</p>}
+              {flag.note && <p className="text-muted">{flag.note}</p>}
               {isAdmin && (
                 <div className="mt-2 flex flex-wrap gap-2">
                   <form
@@ -121,7 +121,7 @@ export default async function ConsolePage() {
                       flag.dog_b,
                     )}
                   >
-                    <button className="rounded-md bg-neutral-900 px-2 py-1 text-xs text-white">
+                    <button className="btn-primary btn-sm">
                       Keep {flag.dogA?.name}, archive {flag.dogB?.name}
                     </button>
                   </form>
@@ -133,12 +133,12 @@ export default async function ConsolePage() {
                       flag.dog_a,
                     )}
                   >
-                    <button className="rounded-md bg-neutral-900 px-2 py-1 text-xs text-white">
+                    <button className="btn-primary btn-sm">
                       Keep {flag.dogB?.name}, archive {flag.dogA?.name}
                     </button>
                   </form>
                   <form action={dismissDuplicateFlag.bind(null, flag.id)}>
-                    <button className="rounded-md border px-2 py-1 text-xs">
+                    <button className="btn-outline btn-sm">
                       Different dogs
                     </button>
                   </form>
@@ -147,18 +147,18 @@ export default async function ConsolePage() {
             </li>
           ))}
           {(pendingFlags ?? []).length === 0 && (
-            <p className="text-sm text-neutral-500">No duplicate flags pending.</p>
+            <p className="text-sm text-muted">No duplicate flags pending.</p>
           )}
         </ul>
       </section>
 
       <section className="mt-8">
-        <h2 className="text-lg font-medium">Dogs</h2>
+        <h2 className="text-xl font-bold">Dogs</h2>
         <ul className="mt-2 flex flex-col gap-2">
           {allDogs.map((dog) => (
             <li
               key={dog.id}
-              className="flex items-center justify-between rounded-md border p-3 text-sm"
+              className="card flex items-center justify-between p-3 text-sm"
             >
               <Link href={`/dogs/${dog.pawpass_id}`} className="underline">
                 {dog.name} — {dog.pawpass_id}
@@ -177,12 +177,12 @@ export default async function ConsolePage() {
 
       {isAdmin && (archivedDogs ?? []).length > 0 && (
         <section className="mt-8">
-          <h2 className="text-lg font-medium">Archived dogs</h2>
+          <h2 className="text-xl font-bold">Archived dogs</h2>
           <ul className="mt-2 flex flex-col gap-2">
             {((archivedDogs ?? []) as Dog[]).map((dog) => (
               <li
                 key={dog.id}
-                className="flex items-center justify-between rounded-md border p-3 text-sm text-neutral-500"
+                className="card flex items-center justify-between p-3 text-sm text-muted"
               >
                 <span>{dog.name} — {dog.pawpass_id}</span>
                 <form action={unarchiveDog.bind(null, dog.id)}>
@@ -196,12 +196,12 @@ export default async function ConsolePage() {
 
       {isAdmin && (
         <section className="mt-8">
-          <h2 className="text-lg font-medium">Users</h2>
+          <h2 className="text-xl font-bold">Users</h2>
           <ul className="mt-2 flex flex-col gap-2">
             {((profiles ?? []) as Profile[]).map((p) => (
               <li
                 key={p.id}
-                className="flex items-center justify-between rounded-md border p-3 text-sm"
+                className="card flex items-center justify-between p-3 text-sm"
               >
                 <span>{p.full_name ?? p.id}</span>
                 <RoleSelect userId={p.id} role={p.role} />

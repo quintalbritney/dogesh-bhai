@@ -6,6 +6,8 @@ import { requireProfile } from "@/lib/auth";
 import { todayISODate, yesterdayISODate } from "@/lib/dates";
 import Timeline from "@/components/Timeline";
 import LogSightingButton from "@/components/LogSightingButton";
+import PhotoLightbox from "@/components/PhotoLightbox";
+import PawPrint from "@/components/PawPrint";
 import {
   assignSelfAsCaregiver,
   leaveCaregiverTeam,
@@ -163,23 +165,25 @@ export default async function DogPassportPage({
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-10">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-start gap-4">
-          {dog.photo_url && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={dog.photo_url}
-              alt={dog.name}
-              className="h-16 w-16 rounded-full border object-cover"
-            />
-          )}
-          <div>
-            <p className="font-mono text-xs text-muted">{dog.pawpass_id}</p>
-            <h1 className="text-3xl font-extrabold">{dog.name}</h1>
-            <p className="text-sm text-muted">
-              {dog.location_label ?? "Location not set"}
-            </p>
-          </div>
+      {dog.photo_url ? (
+        <PhotoLightbox
+          src={dog.photo_url}
+          alt={dog.name}
+          className="aspect-[4/3] w-full border-4 border-white object-cover object-top shadow-lg"
+        />
+      ) : (
+        <div className="flex aspect-[4/3] w-full items-center justify-center rounded-3xl bg-primary/10 text-primary">
+          <PawPrint className="h-16 w-16" />
+        </div>
+      )}
+
+      <div className="mt-4 flex items-start justify-between gap-4">
+        <div>
+          <p className="font-mono text-xs text-muted">{dog.pawpass_id}</p>
+          <h1 className="text-3xl font-extrabold">{dog.name}</h1>
+          <p className="text-sm text-muted">
+            {dog.location_label ?? "Location not set"}
+          </p>
         </div>
         <span
           className={`whitespace-nowrap rounded-full border px-3 py-1 text-sm font-medium ${STATUS_CHIP_CLASS[dog.status]}`}

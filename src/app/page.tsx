@@ -150,7 +150,7 @@ export default async function HomePage() {
                         <img
                           src={dog.photo_url}
                           alt={dog.name}
-                          className="h-full w-full object-cover transition group-hover:scale-105"
+                          className="h-full w-full object-cover object-top transition group-hover:scale-105"
                         />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center text-primary">

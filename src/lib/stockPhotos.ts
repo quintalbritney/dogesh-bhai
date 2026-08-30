@@ -22,4 +22,15 @@ export const stockPhotoGallery = [
   { src: stockPhotos.kozhikode, alt: "Stray dogs in Kozhikode, Kerala" },
   { src: stockPhotos.mumbai, alt: "A community dog on a Mumbai street" },
   { src: stockPhotos.dehradun, alt: "An Indian street dog in Dehradun" },
+  { src: stockPhotos.varanasi, alt: "A community dog in Varanasi" },
+  { src: stockPhotos.calcutta, alt: "A community dog in Calcutta" },
 ];
+
+// Individual portrait photos used for demo dog profiles.
+export const dogPortraits = {
+  pariah1: commonsFile("Indian pariah dog 07904.jpg", 800),
+  pariah2: commonsFile("Indian pariah dog 07905.jpg", 800),
+  pariah3: commonsFile("The Indian Pariah Dog.jpg", 800),
+  pariahPet: commonsFile("A Pet Indian Pariah Dog.jpg", 800),
+  streetDog: commonsFile("Indian street dog.jpg", 800),
+} as const;

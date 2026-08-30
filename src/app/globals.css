@@ -1,31 +1,35 @@
 @import "tailwindcss";
 
 /*
-  Design system — "Marigold & Teal"
-  Punchy, empathy-led palette inspired by Indian marigold flowers (warm coral/gold)
-  against a calm, Apple-restrained neutral canvas. Color theory: coral (primary CTA)
-  and teal (secondary) sit near-complementary on the wheel, so they pop against each
-  other and against the warm neutral background without competing.
+  Design system — "Sunshine & Sky"
+  Bright, retail-cheerful palette (Petco / iHeartDogs inspired): a sunny yellow
+  backdrop, a confident blue header/brand color, and a punchy coral CTA that
+  pops against both. Color theory: coral sits near-complementary to the blue,
+  and warm yellow behind everything keeps the whole page feeling bright rather
+  than needing a photo-heavy dark hero to carry the mood.
 */
 :root {
-  --background: #fff9f2;
+  --background: #fff3c4;
   --surface: #ffffff;
-  --foreground: #241c15;
-  --muted: #8a7c6c;
-  --border: #ede0d1;
+  --foreground: #1a2340;
+  --muted: #6b6350;
+  --border: #fde68a;
+
+  --header-bg: #1d4ed8;
+  --header-foreground: #ffffff;
 
   --primary: #ff6b35;
   --primary-hover: #e8551f;
   --primary-foreground: #ffffff;
 
-  --secondary: #0f766e;
-  --secondary-hover: #0b5d57;
+  --secondary: #1d4ed8;
+  --secondary-hover: #1e40af;
   --secondary-foreground: #ffffff;
 
-  --accent: #ffb100;
+  --accent: #ffd400;
 
   --status-good: #16c172;
-  --status-warn: #ffb100;
+  --status-warn: #f59e0b;
   --status-bad: #ff3b30;
 }
 
@@ -35,6 +39,8 @@
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-border: var(--border);
+  --color-header-bg: var(--header-bg);
+  --color-header-foreground: var(--header-foreground);
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
   --color-primary-foreground: var(--primary-foreground);
@@ -49,15 +55,9 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #14100d;
-    --surface: #1e1712;
-    --foreground: #f5ede4;
-    --muted: #b3a99c;
-    --border: #2e2620;
-  }
-}
+/* No prefers-color-scheme override on purpose: the brand is a bright yellow/
+   blue look (Petco/iHeartDogs-style), not a dark theme, so it stays this way
+   regardless of the visitor's OS setting — same reasoning those sites use. */
 
 * {
   border-color: var(--border);
@@ -112,7 +112,7 @@ h3 {
 .btn-secondary {
   background: var(--secondary);
   color: var(--secondary-foreground);
-  box-shadow: 0 4px 14px -4px rgba(15, 118, 110, 0.5);
+  box-shadow: 0 4px 14px -4px rgba(29, 78, 216, 0.5);
 }
 .btn-secondary:hover {
   background: var(--secondary-hover);
@@ -166,9 +166,23 @@ h3 {
   font-weight: 500;
 }
 
-/* Paw print decorative background pattern */
+/* Scattered paw-print decorative texture — tileable background, used behind
+   hero/section content for a playful, "small dogs padding around" feel. */
 .paw-pattern {
-  background-image: radial-gradient(var(--muted) 1px, transparent 1px);
-  background-size: 22px 22px;
-  opacity: 0.15;
+  background-image: radial-gradient(var(--muted) 1.5px, transparent 1.5px);
+  background-size: 26px 26px;
+  opacity: 0.12;
+}
+
+@keyframes paw-bounce {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--rot, 0deg));
+  }
+  50% {
+    transform: translateY(-6px) rotate(var(--rot, 0deg));
+  }
+}
+.paw-float {
+  animation: paw-bounce 3.5s ease-in-out infinite;
 }

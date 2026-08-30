@@ -2,7 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/lib/auth";
 import { yesterdayISODate } from "@/lib/dates";
-import { archiveDog, unarchiveDog } from "@/app/console/actions";
+import { archiveDog, unarchiveDog, seedDemoDogs } from "@/app/console/actions";
 import {
   mergeDuplicateFlag,
   dismissDuplicateFlag,
@@ -68,9 +68,16 @@ export default async function ConsolePage() {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
-      <h1 className="text-3xl font-bold">
-        {isAdmin ? "Admin console" : "NGO console"}
-      </h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold">
+          {isAdmin ? "Admin console" : "NGO console"}
+        </h1>
+        {isAdmin && (
+          <form action={seedDemoDogs}>
+            <button className="btn-outline btn-sm">🐾 Seed demo dogs</button>
+          </form>
+        )}
+      </div>
 
       <section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div className="card p-3">

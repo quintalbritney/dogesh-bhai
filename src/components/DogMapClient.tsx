@@ -1,6 +1,6 @@
 "use client";
 
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Tooltip } from "react-leaflet";
 import L from "leaflet";
 import Link from "next/link";
 import "leaflet/dist/leaflet.css";
@@ -48,6 +48,9 @@ export default function DogMapClient({ dogs }: { dogs: Dog[] }) {
           position={[dog.current_lat as number, dog.current_lng as number]}
           icon={markerIcon(STATUS_COLOR[dog.status] ?? "#888")}
         >
+          <Tooltip permanent direction="top" offset={[0, -10]} className="!rounded-full !border-0 !bg-header-bg !px-2 !py-0.5 !text-xs !font-bold !text-white !shadow">
+            {dog.name}
+          </Tooltip>
           <Popup>
             <p className="font-medium">{dog.name}</p>
             <p className="text-xs">{dog.pawpass_id}</p>

@@ -62,6 +62,26 @@ const FAQS = [
     q: "A dog is aggressive towards people on my street, what do I do?",
     a: "Report it through this app's emergency flow with the location and details. Sudden aggression is often pain, fear, or a protective response (e.g. nursing puppies nearby) rather than random hostility, a vet or experienced handler should assess it, not the public.",
   },
+  {
+    q: "What does 'PawPass ID' actually mean for a doggo?",
+    a: "It's a permanent record tied to one specific dog, not a person or a location. Once a dog is registered, every feeding, sighting, health event, and QR collar scan attaches to that same ID forever, so the dog's story doesn't get lost just because a different volunteer is on duty that week.",
+  },
+  {
+    q: "I found a litter of puppies, what now?",
+    a: "Puppies are fragile: keep handling brief and gentle, don't separate them from the mother if she's nearby (she's their best chance), and get them onto the app so a caregiver and, once old enough, a vet visit can be scheduled. Avoid giving cow's milk, it upsets their stomachs, plain water is safer until a vet weighs in.",
+  },
+  {
+    q: "How is this different from just feeding a dog myself?",
+    a: "Feeding is wonderful and still the most important daily act of care, this app doesn't replace it. What it adds is memory: a health history a vet can actually use, a caregiver team so one missed day doesn't mean a missed week, and a way for an NGO or municipal officer to find the dog again for vaccination or registration instead of starting from scratch.",
+  },
+  {
+    q: "What's a 'care gap' and why does it matter?",
+    a: "It means no active caregiver is currently assigned, so there's a real risk feeding or health checks quietly stop. It's flagged in red on purpose, a wagging tail on a well-fed dog and a care gap can look identical from a distance, the record is what tells the difference.",
+  },
+  {
+    q: "Can I help even if I can't foster or adopt?",
+    a: "Yes, and honestly that's most of what this app is built for. A five-minute walk to check a feeding bowl, logging a sighting so someone knows a dog is safe, or submitting a health event after a vet visit all count. Community dogs mostly don't need a new home, they need people who keep showing up where they already are.",
+  },
 ];
 
 export default async function LearnPage() {
@@ -116,6 +136,9 @@ export default async function LearnPage() {
 
       <section className="mt-12">
         <h2 className="text-xl font-bold text-secondary">❓ Frequently asked</h2>
+        <p className="mt-1 text-sm text-muted">
+          Everything we get asked most, from first pawprint to full care team.
+        </p>
         <div className="mt-4 flex flex-col gap-2">
           {FAQS.map((item) => (
             <details key={item.q} className="card p-4">
@@ -128,6 +151,12 @@ export default async function LearnPage() {
 
       <section className="mt-12">
         <h2 className="text-xl font-bold text-secondary">📍 Get help nearby</h2>
+        <p className="mt-1 text-sm text-muted">
+          Looking for the closest clinic instead?{" "}
+          <Link href="/vets" className="underline">
+            See nearest vets →
+          </Link>
+        </p>
         {verifiedOrgs.length > 0 ? (
           <div className="mt-4 flex flex-col gap-2">
             {verifiedOrgs.map((org) => (

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getCurrentProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import PawPrint from "@/components/PawPrint";
+import PhotoCarousel from "@/components/PhotoCarousel";
 import { listDogPhotos, pickRandom } from "@/lib/dogPhotoStorage";
 import type { Dog } from "@/lib/supabase/types";
 
@@ -30,6 +31,7 @@ export default async function HomePage() {
     { count: completedTaskCount },
     { count: verifiedCount },
     { count: resolvedCaseCount },
+    { data: happyDogs },
   ] = await Promise.all([
     supabase
       .from("dogs")
@@ -53,6 +55,13 @@ export default async function HomePage() {
       .from("medical_cases")
       .select("id", { count: "exact", head: true })
       .eq("status", "resolved"),
+    supabase
+      .from("dogs")
+      .select("*")
+      .eq("archived", false)
+      .eq("status", "well_cared_for")
+      .order("created_at", { ascending: false })
+      .limit(4),
   ]);
 
   const dogs = (recentDogs ?? []) as Dog[];
@@ -61,6 +70,8 @@ export default async function HomePage() {
     const bucketPhotos = await listDogPhotos(supabase);
     const [heroPhoto] = pickRandom(bucketPhotos, 1);
     const galleryPhotos = pickRandom(bucketPhotos, 6);
+    const carouselPhotos = pickRandom(bucketPhotos, Math.min(8, bucketPhotos.length));
+    const tails = (happyDogs ?? []) as Dog[];
 
     return (
       <main className="flex-1 overflow-hidden">
@@ -135,6 +146,32 @@ export default async function HomePage() {
           </div>
         </section>
 
+        {/* About us */}
+        <section className="relative overflow-hidden bg-surface py-20">
+          <div className="mx-auto flex max-w-4xl flex-col items-center gap-6 px-4 text-center">
+            <PawPrint className="h-8 w-8 text-primary" />
+            <h2 className="text-3xl font-bold">About us</h2>
+            <p className="quote max-w-xl text-lg text-secondary">
+              &ldquo;Every street has a story. Every doggo deserves a name in
+              it.&rdquo;
+            </p>
+            <p className="max-w-2xl text-base text-foreground/80">
+              Dogesh Bhai started with a simple frustration: community dogs
+              get fed by kind strangers, treated by kind vets, and worried
+              about by kind neighbours, but none of that kindness ever talks
+              to each other. One person doesn&apos;t know the dog was already
+              vaccinated. Another doesn&apos;t know who to call when it&apos;s
+              hurt. So the same dog gets forgotten, over and over, by people
+              who never stopped caring.
+            </p>
+            <p className="max-w-2xl text-base text-foreground/80">
+              We believe every pawprint deserves a paper trail. Not to own the
+              dog, just to remember it, so the next kind stranger doesn&apos;t
+              have to start from zero.
+            </p>
+          </div>
+        </section>
+
         {/* Live dog grid */}
         <section className="bg-surface py-20">
           <div className="mx-auto max-w-5xl px-4">
@@ -205,6 +242,51 @@ export default async function HomePage() {
           </div>
         </section>
 
+        {/* Happy tails */}
+        {tails.length > 0 && (
+          <section className="bg-background py-20">
+            <div className="mx-auto max-w-5xl px-4">
+              <div className="flex items-center justify-center gap-2 text-center">
+                <PawPrint className="h-5 w-5 text-primary" />
+                <h2 className="text-3xl font-bold">Happy tails</h2>
+              </div>
+              <p className="quote mt-2 text-center text-muted">
+                &ldquo;A wagging tail is proof that somebody showed up.&rdquo;
+              </p>
+              <div className="mt-10 grid grid-cols-2 gap-5 sm:grid-cols-4">
+                {tails.map((dog) => (
+                  <Link
+                    key={dog.id}
+                    href={`/dogs/${dog.pawpass_id}`}
+                    className="card group overflow-hidden transition hover:-translate-y-1 hover:shadow-lg"
+                  >
+                    <div className="aspect-square w-full overflow-hidden bg-surface">
+                      {dog.photo_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={dog.photo_url}
+                          alt={dog.name}
+                          className="h-full w-full object-cover object-top transition group-hover:scale-105"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-primary">
+                          <PawPrint className="h-10 w-10" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-3">
+                      <p className="font-bold">{dog.name} 🟢</p>
+                      <p className="text-xs text-muted">
+                        {dog.location_label ?? "Cared for, fed, never forgotten"}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* Honest, live stats */}
         <section className="bg-background py-16">
           <div className="mx-auto max-w-4xl px-4">
@@ -233,6 +315,37 @@ export default async function HomePage() {
                 <p className="mt-1 text-xs text-muted">emergencies resolved</p>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* Come join us */}
+        <section className="relative overflow-hidden bg-surface py-20">
+          <div className="mx-auto grid max-w-5xl items-center gap-10 px-4 md:grid-cols-2">
+            <div className="text-center md:text-left">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary">
+                <PawPrint className="h-4 w-4" />
+                Come join us
+              </span>
+              <h2 className="mt-4 text-3xl font-bold">
+                Somewhere near you, a good boy is waiting to be noticed.
+              </h2>
+              <p className="quote mt-3 text-lg text-secondary">
+                &ldquo;You don&apos;t need a leash to belong to someone.&rdquo;
+              </p>
+              <p className="mt-4 text-base text-foreground/80">
+                Volunteers feed and check in on doggos day to day. NGOs take
+                on the paperwork of vaccination and municipal registration.
+                Vets verify what&apos;s real. However much time you have,
+                there&apos;s a pawprint-sized place for you in the Care
+                Circle.
+              </p>
+              <div className="mt-6 flex flex-wrap justify-center gap-3 md:justify-start">
+                <Link href="/signup" className="btn-primary px-8 py-3.5 text-base">
+                  Join the Care Circle
+                </Link>
+              </div>
+            </div>
+            {carouselPhotos.length > 0 && <PhotoCarousel photos={carouselPhotos} />}
           </div>
         </section>
 

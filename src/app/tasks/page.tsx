@@ -2,7 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
 import { todayISODate, yesterdayISODate } from "@/lib/dates";
-import { completeCareTask } from "@/app/dogs/actions";
+import { completeCareTask, markCareCheckedNoActionNeeded } from "@/app/dogs/actions";
 import type { CareSchedule, CareTask, Dog } from "@/lib/supabase/types";
 
 export default async function TasksPage() {
@@ -39,15 +39,15 @@ export default async function TasksPage() {
         .eq("schedule_id", schedule.id)
         .in("due_date", [today, yesterday]);
       const taskRows = (tasks ?? []) as CareTask[];
+      const isDone = (t: CareTask) =>
+        t.status === "completed" || t.status === "checked_no_action_needed";
+      const todayTask = taskRows.find((t) => t.due_date === today && isDone(t));
       return {
         schedule,
         dog: dogsById.get(schedule.dog_id),
-        todayDone: taskRows.some(
-          (t) => t.due_date === today && t.status === "completed",
-        ),
-        yesterdayDone: taskRows.some(
-          (t) => t.due_date === yesterday && t.status === "completed",
-        ),
+        todayDone: Boolean(todayTask),
+        todayCheckedOnly: todayTask?.status === "checked_no_action_needed",
+        yesterdayDone: taskRows.some((t) => t.due_date === yesterday && isDone(t)),
       };
     }),
   );
@@ -114,20 +114,35 @@ export default async function TasksPage() {
                   key={schedule.id}
                   className="card flex items-center justify-between p-3"
                 >
-                  <span>{dog.name} — {schedule.task_type}</span>
-                  <form
-                    action={completeCareTask.bind(
-                      null,
-                      schedule.id,
-                      dog.id,
-                      dog.pawpass_id,
-                      undefined,
-                    )}
-                  >
-                    <button className="btn-primary btn-sm">
-                      Mark as fed ❤️
-                    </button>
-                  </form>
+                  <span>{dog.name}, {schedule.task_type}</span>
+                  <div className="flex gap-2">
+                    <form
+                      action={completeCareTask.bind(
+                        null,
+                        schedule.id,
+                        dog.id,
+                        dog.pawpass_id,
+                        undefined,
+                      )}
+                    >
+                      <button className="btn-primary btn-sm">
+                        Mark as fed ❤️
+                      </button>
+                    </form>
+                    <form
+                      action={markCareCheckedNoActionNeeded.bind(
+                        null,
+                        schedule.id,
+                        dog.id,
+                        dog.pawpass_id,
+                        undefined,
+                      )}
+                    >
+                      <button className="btn-outline btn-sm">
+                        Just checking in
+                      </button>
+                    </form>
+                  </div>
                 </li>
               ) : null,
             )}
@@ -139,10 +154,10 @@ export default async function TasksPage() {
         <section className="mt-6">
           <h2 className="text-sm font-medium">🟢 Completed today</h2>
           <ul className="mt-2 flex flex-col gap-2">
-            {done.map(({ schedule, dog }) =>
+            {done.map(({ schedule, dog, todayCheckedOnly }) =>
               dog ? (
                 <li key={schedule.id} className="rounded-md border p-3">
-                  {dog.name} — {schedule.task_type}
+                  {dog.name}, {todayCheckedOnly ? "checked in, no feeding needed" : schedule.task_type}
                 </li>
               ) : null,
             )}

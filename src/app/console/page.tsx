@@ -6,6 +6,8 @@ import {
   archiveDog,
   unarchiveDog,
   seedDemoDogs,
+  seedRealDogProfiles,
+  refreshStalePhotosFromBucket,
   archiveDuplicateNamedDogs,
 } from "@/app/console/actions";
 import {
@@ -58,6 +60,7 @@ export default async function ConsolePage() {
   ]);
 
   const allDogs = (dogs ?? []) as Dog[];
+  const needsNgo = allDogs.filter((d) => !d.assigned_org_id);
   const counts = {
     well: allDogs.filter((d) => d.status === "well_cared_for").length,
     attention: allDogs.filter((d) => d.status === "attention_needed").length,
@@ -82,6 +85,17 @@ export default async function ConsolePage() {
             <form action={seedDemoDogs}>
               <button className="btn-outline btn-sm">🐾 Seed demo dogs</button>
             </form>
+            <form action={seedRealDogProfiles}>
+              <button className="btn-outline btn-sm">📷 Add real dog photos</button>
+            </form>
+            <form action={refreshStalePhotosFromBucket}>
+              <button
+                className="btn-outline btn-sm"
+                title="Replaces missing or old stock photos with a random photo from the dog-photos bucket"
+              >
+                🔄 Refresh stale photos
+              </button>
+            </form>
             <form action={archiveDuplicateNamedDogs}>
               <button className="btn-outline btn-sm" title="Keeps the oldest of each repeated name, archives the rest">
                 🧹 Clean up duplicate names
@@ -95,7 +109,7 @@ export default async function ConsolePage() {
         <div className="card p-3">
           <p className="text-2xl font-bold text-primary">{allDogs.length}</p>
           <p className="text-xs text-muted">
-            dogs — 🟢{counts.well} 🟡{counts.attention} 🔴{counts.gap}
+            dogs, 🟢{counts.well} 🟡{counts.attention} 🔴{counts.gap}
           </p>
         </div>
         <div className="card p-3">
@@ -171,6 +185,25 @@ export default async function ConsolePage() {
         </ul>
       </section>
 
+      {isAdmin && needsNgo.length > 0 && (
+        <section className="mt-8">
+          <h2 className="text-xl font-bold">Needs NGO ({needsNgo.length})</h2>
+          <p className="mt-1 text-sm text-muted">
+            These dogs are registered but not yet connected with an NGO for
+            vaccination and municipal registration.
+          </p>
+          <ul className="mt-2 flex flex-col gap-2">
+            {needsNgo.map((dog) => (
+              <li key={dog.id} className="card p-3 text-sm">
+                <Link href={`/dogs/${dog.pawpass_id}`} className="underline">
+                  {dog.name} ({dog.pawpass_id})
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <section className="mt-8">
         <h2 className="text-xl font-bold">Dogs</h2>
         <ul className="mt-2 flex flex-col gap-2">
@@ -180,7 +213,7 @@ export default async function ConsolePage() {
               className="card flex items-center justify-between p-3 text-sm"
             >
               <Link href={`/dogs/${dog.pawpass_id}`} className="underline">
-                {dog.name} — {dog.pawpass_id}
+                {dog.name} ({dog.pawpass_id})
               </Link>
               {isAdmin && (
                 <form action={archiveDog.bind(null, dog.id)}>
@@ -203,7 +236,7 @@ export default async function ConsolePage() {
                 key={dog.id}
                 className="card flex items-center justify-between p-3 text-sm text-muted"
               >
-                <span>{dog.name} — {dog.pawpass_id}</span>
+                <span>{dog.name} ({dog.pawpass_id})</span>
                 <form action={unarchiveDog.bind(null, dog.id)}>
                   <button className="text-xs underline">Unarchive</button>
                 </form>

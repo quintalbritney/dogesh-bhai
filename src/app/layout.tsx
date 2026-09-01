@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Dogesh Bhai",
   description:
-    "A digital health and care passport for community dogs — one dog, one record, a community that remembers.",
+    "A digital health and care passport for community dogs: one dog, one record, a community that remembers.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

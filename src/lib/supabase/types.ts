@@ -14,7 +14,11 @@ export type DogStatus = "well_cared_for" | "attention_needed" | "care_gap";
 export type PingSource = "manual" | "qr_scan" | "care_task" | "sighting";
 export type CaregiverRole = "primary" | "backup";
 export type CaregiverStatus = "active" | "left";
-export type CareTaskStatus = "scheduled" | "completed" | "missed";
+export type CareTaskStatus =
+  | "scheduled"
+  | "completed"
+  | "missed"
+  | "checked_no_action_needed";
 export type HealthEventType =
   | "vaccination"
   | "sterilisation"
@@ -70,6 +74,32 @@ export type Dog = {
   created_by: string;
   archived: boolean;
   merged_into: string | null;
+  assigned_org_id: string | null;
+  created_at: string;
+};
+
+export type DogRegistrationMilestone = {
+  dog_id: string;
+  municipally_registered: boolean;
+  municipal_reference: string | null;
+  municipally_registered_at: string | null;
+  municipally_registered_by: string | null;
+  collar_attached: boolean;
+  collar_serial: string | null;
+  collared_at: string | null;
+  collared_by: string | null;
+};
+
+export type Vet = {
+  id: string;
+  name: string;
+  address: string | null;
+  phone: string | null;
+  lat: number;
+  lng: number;
+  org_id: string | null;
+  notes: string | null;
+  created_by: string;
   created_at: string;
 };
 
@@ -262,9 +292,29 @@ export type Database = {
         },
         Partial<Notification>
       >;
+      dog_registration_milestones: TableDef<
+        DogRegistrationMilestone,
+        Partial<DogRegistrationMilestone> & { dog_id: string },
+        Partial<DogRegistrationMilestone>
+      >;
+      vets: TableDef<
+        Vet,
+        Partial<Vet> & {
+          name: string;
+          lat: number;
+          lng: number;
+          created_by: string;
+        },
+        Partial<Vet>
+      >;
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      dog_is_vaccinated: {
+        Args: { target_dog_id: string };
+        Returns: boolean;
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };

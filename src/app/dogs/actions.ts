@@ -202,3 +202,44 @@ export async function completeCareTask(
   revalidatePath(`/dogs/${pawpassId}`);
   revalidatePath("/tasks");
 }
+
+export async function markCareCheckedNoActionNeeded(
+  scheduleId: string,
+  dogId: string,
+  pawpassId: string,
+  dueDate?: string,
+) {
+  const profile = await requireProfile();
+  const supabase = await createClient();
+  const due_date = dueDate ?? todayISODate();
+
+  const { data: task, error } = await supabase
+    .from("care_tasks")
+    .upsert(
+      {
+        schedule_id: scheduleId,
+        dog_id: dogId,
+        due_date,
+        status: "checked_no_action_needed",
+        completed_by: profile.id,
+        completed_at: new Date().toISOString(),
+      },
+      { onConflict: "schedule_id,due_date" },
+    )
+    .select()
+    .single();
+
+  if (!error && task) {
+    await supabase.from("timeline_events").insert({
+      dog_id: dogId,
+      event_type: "care_checked_no_action_needed",
+      ref_table: "care_tasks",
+      ref_id: task.id,
+      description: `${profile.full_name ?? "A caregiver"} checked in and no feeding was needed.`,
+      created_by: profile.id,
+    });
+  }
+
+  revalidatePath(`/dogs/${pawpassId}`);
+  revalidatePath("/tasks");
+}

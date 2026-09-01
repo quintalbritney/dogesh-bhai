@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import PawPrint from "@/components/PawPrint";
 import type { Organisation } from "@/lib/supabase/types";
@@ -5,7 +6,7 @@ import type { Organisation } from "@/lib/supabase/types";
 const HYGIENE_TIPS = [
   {
     title: "Clean water, always",
-    body: "A shallow bowl of fresh water matters more than food in hot weather. Change it daily — stagnant water breeds disease.",
+    body: "A shallow bowl of fresh water matters more than food in hot weather. Change it daily, stagnant water breeds disease.",
   },
   {
     title: "Check for ticks and wounds weekly",
@@ -32,15 +33,15 @@ const FIRST_AID_TIPS = [
   },
   {
     title: "Clean, don't disinfect aggressively",
-    body: "Rinse wounds with clean water or saline. Avoid strong antiseptics like neat Dettol directly on open wounds — they can damage tissue. Get to a vet within hours for anything deep.",
+    body: "Rinse wounds with clean water or saline. Avoid strong antiseptics like neat Dettol directly on open wounds, they can damage tissue. Get to a vet within hours for anything deep.",
   },
   {
     title: "Heatstroke is an emergency",
-    body: "Heavy panting, drooling, wobbling, or collapse in hot weather — move to shade immediately, offer water, wet the paws and belly with cool (not ice-cold) water, and get to a vet.",
+    body: "Heavy panting, drooling, wobbling, or collapse in hot weather: move to shade immediately, offer water, wet the paws and belly with cool (not ice-cold) water, and get to a vet.",
   },
   {
     title: "Hit by a vehicle? Don't move it unnecessarily",
-    body: "Internal injuries aren't visible. If the dog can't stand, support it flat on a board or firm cloth to transport — dragging or lifting by the middle can worsen spinal injuries.",
+    body: "Internal injuries aren't visible. If the dog can't stand, support it flat on a board or firm cloth to transport. Dragging or lifting by the middle can worsen spinal injuries.",
   },
 ];
 
@@ -51,15 +52,15 @@ const FAQS = [
   },
   {
     q: "Why sterilise instead of relocating a dog?",
-    a: "Relocation just creates a territory vacuum that another dog fills — the population doesn't actually drop, and the relocated dog often can't survive in unfamiliar territory. Sterilisation (ABC) is the only method shown to reduce numbers over time.",
+    a: "Relocation just creates a territory vacuum that another dog fills, the population doesn't actually drop, and the relocated dog often can't survive in unfamiliar territory. Sterilisation (ABC) is the only method shown to reduce numbers over time.",
   },
   {
     q: "What vaccinations does a community dog need?",
     a: "Anti-rabies is the priority and is usually free through municipal drives. A full vaccination series (as advised by a vet) covers distemper, parvovirus, and other common risks too.",
   },
   {
-    q: "A dog is aggressive towards people on my street — what do I do?",
-    a: "Report it through this app's emergency flow with the location and details. Sudden aggression is often pain, fear, or a protective response (e.g. nursing puppies nearby) rather than random hostility — a vet or experienced handler should assess it, not the public.",
+    q: "A dog is aggressive towards people on my street, what do I do?",
+    a: "Report it through this app's emergency flow with the location and details. Sudden aggression is often pain, fear, or a protective response (e.g. nursing puppies nearby) rather than random hostility, a vet or experienced handler should assess it, not the public.",
   },
 ];
 
@@ -78,7 +79,7 @@ export default async function LearnPage() {
         <PawPrint className="mx-auto h-8 w-8 text-primary" />
         <h1 className="mt-2 text-3xl font-bold">Learn to help, safely</h1>
         <p className="quote mt-2 text-muted">
-          Everything you do, do it with love — and a little know-how.
+          Everything you do, do it with love, and a little know-how.
         </p>
       </div>
 
@@ -106,9 +107,9 @@ export default async function LearnPage() {
         </div>
         <p className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">
           None of this replaces a vet. For anything serious, report it through{" "}
-          <a href="/dogs" className="underline">
+          <Link href="/dogs" className="underline">
             a dog&apos;s passport page
-          </a>{" "}
+          </Link>{" "}
           so a verified responder can act.
         </p>
       </section>

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getCurrentProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import PawPrint from "@/components/PawPrint";
-import { stockPhotos, stockPhotoGallery } from "@/lib/stockPhotos";
+import { listDogPhotos, pickRandom } from "@/lib/dogPhotoStorage";
 import type { Dog } from "@/lib/supabase/types";
 
 const STATUS_DOT: Record<string, string> = {
@@ -58,6 +58,10 @@ export default async function HomePage() {
   const dogs = (recentDogs ?? []) as Dog[];
 
   if (!profile) {
+    const bucketPhotos = await listDogPhotos(supabase);
+    const [heroPhoto] = pickRandom(bucketPhotos, 1);
+    const galleryPhotos = pickRandom(bucketPhotos, 6);
+
     return (
       <main className="flex-1 overflow-hidden">
         {/* Hero — bright yellow backdrop, framed photo, no dark overlay */}
@@ -77,7 +81,7 @@ export default async function HomePage() {
               </p>
               <p className="mt-4 max-w-md text-base text-foreground/80 md:mx-0 mx-auto">
                 Don&apos;t just map the dog. Map its care. A digital health
-                and care passport for community dogs — connecting identity,
+                and care passport for community dogs, connecting identity,
                 health records and caregivers so nothing essential gets
                 missed.
               </p>
@@ -95,12 +99,18 @@ export default async function HomePage() {
               <div className="absolute -bottom-8 -right-4 h-16 w-16 rotate-12 text-primary/70">
                 <PawPrint className="paw-float h-16 w-16" />
               </div>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={stockPhotos.hero}
-                alt="An Indian community street dog"
-                className="relative aspect-square w-full rounded-[2.5rem] border-4 border-white object-cover shadow-xl"
-              />
+              {heroPhoto ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={heroPhoto.url}
+                  alt="A community street dog"
+                  className="relative aspect-square w-full rounded-[2.5rem] border-4 border-white object-cover shadow-xl"
+                />
+              ) : (
+                <div className="relative flex aspect-square w-full items-center justify-center rounded-[2.5rem] border-4 border-white bg-primary/10 text-primary shadow-xl">
+                  <PawPrint className="h-16 w-16" />
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -133,7 +143,7 @@ export default async function HomePage() {
               <h2 className="text-3xl font-bold">Meet the dogs</h2>
             </div>
             <p className="mt-2 text-center text-muted">
-              Real profiles on Dogesh Bhai — tap a dog to see its passport.
+              Real profiles on Dogesh Bhai, tap a dog to see its passport.
             </p>
 
             {dogs.length > 0 ? (
@@ -169,18 +179,22 @@ export default async function HomePage() {
                   </Link>
                 ))}
               </div>
-            ) : (
+            ) : galleryPhotos.length > 0 ? (
               <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
-                {stockPhotoGallery.map((photo) => (
+                {galleryPhotos.map((photo) => (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    key={photo.src}
-                    src={photo.src}
-                    alt={photo.alt}
+                    key={photo.fileName}
+                    src={photo.url}
+                    alt={`A community dog, ${photo.label}`}
                     className="aspect-square w-full rounded-2xl object-cover shadow-sm"
                   />
                 ))}
               </div>
+            ) : (
+              <p className="mt-10 text-center text-sm text-muted">
+                No dog photos yet.
+              </p>
             )}
 
             <div className="mt-8 text-center">

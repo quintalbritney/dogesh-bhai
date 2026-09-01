@@ -20,7 +20,7 @@ export default async function MapPage() {
       <h1 className="text-2xl font-semibold">Community map</h1>
       <p className="mt-1 text-sm text-neutral-500">
         {located.length} of {allDogs.length} dogs have a logged location.
-        Locations come from caregiver sightings and QR scans — not GPS.
+        Locations come from caregiver sightings and QR scans, not GPS.
       </p>
       <div className="mt-4 flex gap-4 text-xs text-neutral-500">
         <span>🟢 Well cared for</span>

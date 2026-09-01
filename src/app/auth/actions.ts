@@ -8,12 +8,14 @@ export async function signUpWithPassword(formData: FormData) {
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
   const fullName = String(formData.get("full_name") ?? "");
+  const role = String(formData.get("role") ?? "caregiver");
+  const orgName = String(formData.get("org_name") ?? "");
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { full_name: fullName } },
+    options: { data: { full_name: fullName, role, org_name: orgName } },
   });
 
   if (error) redirect(`/signup?error=${encodeURIComponent(error.message)}`);

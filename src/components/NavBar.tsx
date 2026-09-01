@@ -38,6 +38,9 @@ export default async function NavBar() {
               <Link href="/map" className="hover:text-accent">
                 Map
               </Link>
+              <Link href="/vets" className="hover:text-accent">
+                Vets
+              </Link>
               <Link href="/tasks" className="hover:text-accent">
                 Today&apos;s care
               </Link>

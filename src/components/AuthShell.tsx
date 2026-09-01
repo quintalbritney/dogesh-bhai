@@ -1,23 +1,42 @@
 import PawPrint from "@/components/PawPrint";
-import { stockPhotos } from "@/lib/stockPhotos";
+import { createClient } from "@/lib/supabase/server";
+import { listDogPhotos, pickRandom } from "@/lib/dogPhotoStorage";
 
-export default function AuthShell({
+export default async function AuthShell({
   quote,
   children,
 }: {
   quote: string;
   children: React.ReactNode;
 }) {
+  const supabase = await createClient();
+  const bucketPhotos = await listDogPhotos(supabase);
+  const gridPhotos = pickRandom(bucketPhotos, 4);
+
   return (
     <main className="flex min-h-[calc(100vh-57px)] flex-1">
-      <div className="relative hidden w-1/2 md:block">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={stockPhotos.kozhikode}
-          alt="Community street dogs"
-          className="h-full w-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+      <div className="relative hidden w-1/2 bg-primary/10 md:block">
+        {gridPhotos.length > 0 ? (
+          <div className="grid h-full grid-cols-2 gap-1 p-1">
+            {gridPhotos.map((photo) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={photo.fileName}
+                src={photo.url}
+                alt="A community dog on Dogesh Bhai"
+                className="h-full w-full rounded-xl object-cover"
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-primary">
+            <PawPrint className="h-20 w-20" />
+          </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+        <div className="absolute right-6 top-6 rotate-12 text-white/80">
+          <PawPrint className="paw-float h-14 w-14" />
+        </div>
         <div className="absolute bottom-10 left-8 right-8 text-white">
           <PawPrint className="h-6 w-6 text-white/90" />
           <p className="quote mt-3 text-xl">&ldquo;{quote}&rdquo;</p>

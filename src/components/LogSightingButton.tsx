@@ -31,7 +31,7 @@ export default function LogSightingButton({
           logLocationPing(dogId, pawpassId, latitude, longitude, source);
         });
       },
-      () => setError("Couldn't get your location — check location permissions."),
+      () => setError("Couldn't get your location, check location permissions."),
     );
   }
 

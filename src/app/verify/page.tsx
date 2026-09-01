@@ -38,7 +38,7 @@ export default async function VerificationQueuePage() {
             <li key={event.id} className="card p-3 text-sm">
               <div className="flex items-center justify-between gap-2">
                 <span className="font-medium capitalize">
-                  {event.type.replace("_", " ")} — {event.event_date}
+                  {event.type.replace("_", " ")} ({event.event_date})
                 </span>
                 {dog && (
                   <Link href={`/dogs/${dog.pawpass_id}`} className="underline">

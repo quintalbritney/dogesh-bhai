@@ -14,6 +14,7 @@ import {
   leaveCaregiverTeam,
   createFeedingSchedule,
   completeCareTask,
+  markCareCheckedNoActionNeeded,
   updateDog,
 } from "@/app/dogs/actions";
 import {
@@ -26,12 +27,18 @@ import {
   advanceMedicalCaseStatus,
 } from "@/app/dogs/case-actions";
 import { flagPossibleDuplicate } from "@/app/dogs/duplicate-actions";
+import {
+  connectDogToNgo,
+  setMunicipalRegistration,
+  setCollarAttached,
+} from "@/app/dogs/pipeline-actions";
 import VerificationBadge from "@/components/VerificationBadge";
 import type {
   CaregiverAssignment,
   CareSchedule,
   CaseStatus,
   CareTask,
+  DogRegistrationMilestone,
   HealthEvent,
   MedicalCase,
   Profile,
@@ -131,8 +138,40 @@ export default async function DogPassportPage({
 
   const canVerify = profile.role === "vet" || profile.role === "admin";
   const canModerateCase = profile.role === "vet" || profile.role === "admin";
+  const isAdmin = profile.role === "admin";
 
-  const activeAssignments = (assignments ?? []) as (CaregiverAssignment & {
+  const [
+    { data: milestones },
+    { data: isVaccinated },
+    { data: ngoProfiles },
+    { data: assignedOrg },
+  ] = await Promise.all([
+    supabase
+      .from("dog_registration_milestones")
+      .select("*")
+      .eq("dog_id", dog.id)
+      .single(),
+    supabase.rpc("dog_is_vaccinated", { target_dog_id: dog.id }),
+    isAdmin
+      ? supabase.from("profiles").select("org_id").eq("role", "ngo").not("org_id", "is", null)
+      : Promise.resolve({ data: [] as { org_id: string | null }[] }),
+    dog.assigned_org_id
+      ? supabase.from("organisations").select("name").eq("id", dog.assigned_org_id).single()
+      : Promise.resolve({ data: null as { name: string } | null }),
+  ]);
+
+  const ngoOrgIds = Array.from(
+    new Set((ngoProfiles ?? []).map((p) => p.org_id).filter((id): id is string => Boolean(id))),
+  );
+  const { data: ngoOrgs } = isAdmin && ngoOrgIds.length > 0
+    ? await supabase.from("organisations").select("id, name").in("id", ngoOrgIds)
+    : { data: [] as { id: string; name: string }[] };
+
+  const canManageMilestones =
+    isAdmin || (profile.role === "ngo" && profile.org_id === dog.assigned_org_id);
+  const dogMilestones = milestones as DogRegistrationMilestone | null;
+
+  const activeAssignments = (assignments ?? []) as unknown as (CaregiverAssignment & {
     profiles: Pick<Profile, "full_name"> | null;
   })[];
   const mySchedules = (schedules ?? []) as CareSchedule[];
@@ -154,12 +193,14 @@ export default async function DogPassportPage({
         .eq("schedule_id", schedule.id)
         .in("due_date", [today, yesterday]);
       const rows = (tasks ?? []) as CareTask[];
+      const isDone = (t: CareTask) =>
+        t.status === "completed" || t.status === "checked_no_action_needed";
+      const todayTask = rows.find((t) => t.due_date === today && isDone(t));
       return {
         schedule,
-        todayDone: rows.some((t) => t.due_date === today && t.status === "completed"),
-        yesterdayDone: rows.some(
-          (t) => t.due_date === yesterday && t.status === "completed",
-        ),
+        todayDone: Boolean(todayTask),
+        todayCheckedOnly: todayTask?.status === "checked_no_action_needed",
+        yesterdayDone: rows.some((t) => t.due_date === yesterday && isDone(t)),
       };
     }),
   );
@@ -283,6 +324,97 @@ export default async function DogPassportPage({
         </div>
       </section>
 
+      <section className="mt-8">
+        <h2 className="text-xl font-bold">Registration pipeline</h2>
+        <ul className="mt-2 flex flex-col gap-2 text-sm">
+          <li className="card p-3">
+            <p className="font-medium">
+              {dog.assigned_org_id
+                ? `🏥 Connected with ${assignedOrg?.name ?? "an NGO"}`
+                : "⬜ Not yet connected with an NGO"}
+            </p>
+            {isAdmin && !dog.assigned_org_id && (
+              <form
+                action={connectDogToNgo.bind(null, dog.id, pawpassId)}
+                className="mt-2 flex flex-wrap gap-2"
+              >
+                <select name="org_id" required className="input" defaultValue="">
+                  <option value="" disabled>
+                    Choose an NGO…
+                  </option>
+                  {(ngoOrgs ?? []).map((org) => (
+                    <option key={org.id} value={org.id}>
+                      {org.name}
+                    </option>
+                  ))}
+                </select>
+                <button className="btn-outline btn-sm">Connect</button>
+                {(ngoOrgs ?? []).length === 0 && (
+                  <p className="w-full text-xs text-muted">
+                    No NGO accounts have signed up yet.
+                  </p>
+                )}
+              </form>
+            )}
+          </li>
+
+          <li className="card p-3">
+            <p className="font-medium">
+              {isVaccinated ? "🩺 Vaccinated (verified)" : "⬜ Not yet vaccinated"}
+            </p>
+            <p className="text-xs text-muted">
+              Based on a verified vaccination record in Health below.
+            </p>
+          </li>
+
+          <li className="card p-3">
+            <p className="font-medium">
+              {dogMilestones?.municipally_registered
+                ? `🏛️ Municipally registered${dogMilestones.municipal_reference ? ` (ref. ${dogMilestones.municipal_reference})` : ""}`
+                : "⬜ Not yet municipally registered"}
+            </p>
+            {canManageMilestones && !dogMilestones?.municipally_registered && (
+              <form
+                action={setMunicipalRegistration.bind(null, dog.id, pawpassId)}
+                className="mt-2 flex flex-wrap gap-2"
+              >
+                <input
+                  name="municipal_reference"
+                  placeholder="Municipal reference (optional)"
+                  className="input"
+                />
+                <button className="btn-outline btn-sm">
+                  Mark municipally registered
+                </button>
+              </form>
+            )}
+          </li>
+
+          <li className="card p-3">
+            <p className="font-medium">
+              {dogMilestones?.collar_attached
+                ? `🪪 QR collar attached${dogMilestones.collar_serial ? ` (${dogMilestones.collar_serial})` : ""}`
+                : "⬜ QR collar not yet attached"}
+            </p>
+            {canManageMilestones && !dogMilestones?.collar_attached && (
+              <form
+                action={setCollarAttached.bind(null, dog.id, pawpassId)}
+                className="mt-2 flex flex-wrap gap-2"
+              >
+                <input
+                  name="collar_serial"
+                  placeholder="Collar serial (optional)"
+                  className="input"
+                />
+                <button className="btn-outline btn-sm">
+                  Mark collar attached
+                </button>
+              </form>
+            )}
+          </li>
+        </ul>
+      </section>
+
       <details className="mt-4 text-sm text-muted">
         <summary className="cursor-pointer">
           This looks like a dog we already have a record for
@@ -311,7 +443,7 @@ export default async function DogPassportPage({
         <h2 className="text-xl font-bold">Care team</h2>
         {activeAssignments.length === 0 && (
           <p className="mt-1 text-sm text-muted">
-            No caregiver yet — this dog has a care gap.
+            No caregiver yet, this dog has a care gap.
           </p>
         )}
         <ul className="mt-2 flex flex-col gap-1">
@@ -368,31 +500,46 @@ export default async function DogPassportPage({
           </div>
         ) : (
           <ul className="mt-2 flex flex-col gap-3">
-            {scheduleTaskRows.map(({ schedule, todayDone, yesterdayDone }) => (
+            {scheduleTaskRows.map(({ schedule, todayDone, todayCheckedOnly, yesterdayDone }) => (
               <li key={schedule.id} className="card p-3">
                 <p className="text-sm font-medium capitalize">
                   {schedule.frequency} {schedule.task_type}
                 </p>
                 <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
                   {todayDone ? (
-                    <span>🟢 Fed today</span>
+                    <span>{todayCheckedOnly ? "🟢 Checked in, no feeding needed" : "🟢 Fed today"}</span>
                   ) : (
                     <>
                       <span>Today&apos;s task is due</span>
                       {isCaregiver && (
-                        <form
-                          action={completeCareTask.bind(
-                            null,
-                            schedule.id,
-                            dog.id,
-                            pawpassId,
-                            undefined,
-                          )}
-                        >
-                          <button className="btn-primary btn-sm">
-                            Mark as fed ❤️
-                          </button>
-                        </form>
+                        <>
+                          <form
+                            action={completeCareTask.bind(
+                              null,
+                              schedule.id,
+                              dog.id,
+                              pawpassId,
+                              undefined,
+                            )}
+                          >
+                            <button className="btn-primary btn-sm">
+                              Mark as fed ❤️
+                            </button>
+                          </form>
+                          <form
+                            action={markCareCheckedNoActionNeeded.bind(
+                              null,
+                              schedule.id,
+                              dog.id,
+                              pawpassId,
+                              undefined,
+                            )}
+                          >
+                            <button className="btn-outline btn-sm">
+                              Just checking in
+                            </button>
+                          </form>
+                        </>
                       )}
                     </>
                   )}
@@ -430,7 +577,7 @@ export default async function DogPassportPage({
             <li key={event.id} className="card p-3 text-sm">
               <div className="flex items-center justify-between gap-2">
                 <span className="font-medium capitalize">
-                  {event.type.replace("_", " ")} — {event.event_date}
+                  {event.type.replace("_", " ")} ({event.event_date})
                 </span>
                 <VerificationBadge status={event.verification_status} />
               </div>

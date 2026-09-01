@@ -15,7 +15,7 @@ export default async function NewDogPage({
       <h1 className="text-3xl font-bold">Give a dog a voice 🐾</h1>
       <p className="mt-1 text-sm text-muted">
         This creates a persistent Dogesh Bhai ID for the dog. Fill in what you
-        know now — you can add more later.
+        know now, you can add more later.
       </p>
 
       {error && (

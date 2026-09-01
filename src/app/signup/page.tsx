@@ -4,6 +4,7 @@ import {
   signInWithGoogle,
 } from "@/app/auth/actions";
 import AuthShell from "@/components/AuthShell";
+import SignupRoleFields from "@/components/SignupRoleFields";
 
 export default async function SignupPage({
   searchParams,
@@ -16,8 +17,9 @@ export default async function SignupPage({
     <AuthShell quote="A dog doesn't need much. Just someone who remembers.">
       <h1 className="text-3xl font-bold">Join the Care Circle</h1>
       <p className="mt-1 text-sm text-muted">
-        Every account starts as a caregiver. Vet, NGO, and admin access is
-        granted by an admin afterwards.
+        Volunteers feed and track dogs day to day. NGOs take on registered
+        dogs for vaccination and municipal registration. Vet and admin access
+        is granted by an admin afterwards.
       </p>
 
       {error && (
@@ -49,6 +51,7 @@ export default async function SignupPage({
           placeholder="Password"
           className="input"
         />
+        <SignupRoleFields />
         <button type="submit" className="btn-primary mt-1 w-full py-3">
           Create account
         </button>

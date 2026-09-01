@@ -1,6 +1,7 @@
 import { createDog } from "@/app/dogs/actions";
 import { requireProfile } from "@/lib/auth";
 import SubmitButton from "@/components/SubmitButton";
+import PhotoUploadField from "@/components/PhotoUploadField";
 
 export default async function NewDogPage({
   searchParams,
@@ -35,14 +36,7 @@ export default async function NewDogPage({
           />
         </label>
 
-        <label className="text-sm font-medium">
-          Photo URL
-          <input
-            name="photo_url"
-            className="input mt-1 w-full"
-            placeholder="Paste a link to a clear photo of the dog"
-          />
-        </label>
+        <PhotoUploadField />
 
         <label className="text-sm font-medium">
           Sex

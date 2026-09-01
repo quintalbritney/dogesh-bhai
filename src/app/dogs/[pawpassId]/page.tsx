@@ -7,6 +7,7 @@ import { todayISODate, yesterdayISODate } from "@/lib/dates";
 import Timeline from "@/components/Timeline";
 import LogSightingButton from "@/components/LogSightingButton";
 import PhotoLightbox from "@/components/PhotoLightbox";
+import PhotoUploadField from "@/components/PhotoUploadField";
 import PawPrint from "@/components/PawPrint";
 import SubmitButton from "@/components/SubmitButton";
 import {
@@ -280,12 +281,7 @@ export default async function DogPassportPage({
               placeholder="Usual location"
               className="input"
             />
-            <input
-              name="photo_url"
-              defaultValue={dog.photo_url ?? ""}
-              placeholder="Photo URL"
-              className="input"
-            />
+            <PhotoUploadField existingUrl={dog.photo_url} />
             <button className="btn-outline self-start">
               Save changes
             </button>

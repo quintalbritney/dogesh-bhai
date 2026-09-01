@@ -33,3 +33,24 @@ export function pickRandom<T>(items: T[], count: number): T[] {
   const shuffled = [...items].sort(() => Math.random() - 0.5);
   return shuffled.slice(0, count);
 }
+
+// Uploads a photo taken/picked during dog registration or editing. Returns
+// the public URL, or null if there was no file or the upload failed (the
+// caller falls back to no photo rather than failing the whole submission).
+export async function uploadDogPhoto(
+  supabase: SupabaseClient<Database>,
+  file: File,
+): Promise<string | null> {
+  if (!file || file.size === 0) return null;
+
+  const ext = file.name.includes(".") ? file.name.split(".").pop() : "jpg";
+  const path = `registrations/${crypto.randomUUID()}.${ext}`;
+
+  const { error } = await supabase.storage
+    .from(BUCKET)
+    .upload(path, file, { contentType: file.type || "image/jpeg" });
+
+  if (error) return null;
+
+  return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+}

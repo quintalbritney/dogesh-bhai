@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
 import { todayISODate } from "@/lib/dates";
+import { uploadDogPhoto } from "@/lib/dogPhotoStorage";
 import type { DogSex } from "@/lib/supabase/types";
 
 export async function createDog(formData: FormData) {
@@ -17,7 +18,10 @@ export async function createDog(formData: FormData) {
   const coat_notes = String(formData.get("coat_notes") ?? "") || null;
   const markers = String(formData.get("markers") ?? "") || null;
   const location_label = String(formData.get("location_label") ?? "") || null;
-  const photo_url = String(formData.get("photo_url") ?? "") || null;
+
+  const photoFile = formData.get("photo");
+  const photo_url =
+    photoFile instanceof File ? await uploadDogPhoto(supabase, photoFile) : null;
 
   if (!name) redirect("/dogs/new?error=Dog+name+is+required");
 
@@ -66,7 +70,12 @@ export async function updateDog(
   const coat_notes = String(formData.get("coat_notes") ?? "") || null;
   const markers = String(formData.get("markers") ?? "") || null;
   const location_label = String(formData.get("location_label") ?? "") || null;
-  const photo_url = String(formData.get("photo_url") ?? "") || null;
+
+  const photoFile = formData.get("photo");
+  const newPhotoUrl =
+    photoFile instanceof File && photoFile.size > 0
+      ? await uploadDogPhoto(supabase, photoFile)
+      : undefined; // undefined = leave the existing photo alone
 
   if (!name) redirect(`/dogs/${pawpassId}?error=${encodeURIComponent("Dog name is required")}`);
 
@@ -79,7 +88,7 @@ export async function updateDog(
       coat_notes,
       markers,
       location_label,
-      photo_url,
+      ...(newPhotoUrl !== undefined ? { photo_url: newPhotoUrl } : {}),
     })
     .eq("id", dogId);
 

@@ -7,7 +7,17 @@
 // demo rows deliberately don't have.
 export const demoNgos: { name: string; type: string }[] = [
   { name: "Ahmedabad Street Paws Trust", type: "ngo" },
-  { name: "Karuna Canine Care Society", type: "ngo" },
-  { name: "Sarvodaya Animal Welfare", type: "ngo" },
-  { name: "Prem Paws Foundation", type: "ngo" },
+  { name: "Karuna Canine Care Society, Navrangpura", type: "ngo" },
+  { name: "Sarvodaya Animal Welfare, Maninagar", type: "ngo" },
+  { name: "Prem Paws Foundation, Satellite", type: "ngo" },
+  { name: "Vastrapur Strays Welfare Society", type: "ngo" },
+  { name: "Bopal Community Dog Welfare Trust", type: "ngo" },
+];
+
+// Names this list used before locality suffixes were added, kept only so
+// the seed action can find and replace them cleanly if already seeded.
+export const legacyDemoNgoNames = [
+  "Karuna Canine Care Society",
+  "Sarvodaya Animal Welfare",
+  "Prem Paws Foundation",
 ];

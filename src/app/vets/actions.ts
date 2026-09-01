@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/lib/auth";
-import { demoVets } from "@/lib/demoVets";
+import { demoVets, legacyDemoVetNames } from "@/lib/demoVets";
 
 export async function createVet(formData: FormData) {
   const profile = await requireRole(["admin", "ngo"]);
@@ -41,6 +41,9 @@ export async function createVet(formData: FormData) {
 export async function seedDemoVets() {
   const profile = await requireRole(["admin"]);
   const supabase = await createClient();
+
+  // Replace any earlier demo vets seeded under the old, non-doctor names.
+  await supabase.from("vets").delete().in("name", legacyDemoVetNames);
 
   const { data: existing } = await supabase
     .from("vets")

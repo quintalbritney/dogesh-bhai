@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/lib/auth";
 import { demoDogs } from "@/lib/demoDogs";
-import { demoNgos } from "@/lib/demoNgos";
+import { demoNgos, legacyDemoNgoNames } from "@/lib/demoNgos";
 import { listDogPhotos, pickRandom } from "@/lib/dogPhotoStorage";
 import { looksLikeJunkName, pickUnusedIndianName } from "@/lib/indianDogNames";
 import type { UserRole } from "@/lib/supabase/types";
@@ -265,6 +265,9 @@ export async function seedRealDogProfiles() {
 export async function seedDemoNgos() {
   const profile = await requireRole(["admin"]);
   const supabase = await createClient();
+
+  // Replace any earlier demo NGOs seeded before locality suffixes were added.
+  await supabase.from("organisations").delete().in("name", legacyDemoNgoNames);
 
   const { data: existing } = await supabase
     .from("organisations")

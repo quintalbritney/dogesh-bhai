@@ -28,7 +28,7 @@ export default async function VetsPage({
             from you.
           </p>
         </div>
-        {isAdmin && (vets ?? []).length === 0 && (
+        {isAdmin && (
           <form action={seedDemoVets}>
             <button className="btn-outline btn-sm">🩺 Seed demo vets</button>
           </form>

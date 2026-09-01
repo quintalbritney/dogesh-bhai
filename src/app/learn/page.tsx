@@ -156,7 +156,7 @@ export default async function LearnPage() {
       <section className="mt-12">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <h2 className="text-xl font-bold text-secondary">📍 Get help nearby</h2>
-          {isAdmin && verifiedOrgs.length === 0 && (
+          {isAdmin && (
             <form action={seedDemoNgos}>
               <button className="btn-outline btn-sm">🏢 Seed demo NGOs</button>
             </form>

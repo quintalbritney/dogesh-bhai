@@ -4,7 +4,9 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/lib/auth";
 import { demoDogs } from "@/lib/demoDogs";
+import { demoNgos } from "@/lib/demoNgos";
 import { listDogPhotos, pickRandom } from "@/lib/dogPhotoStorage";
+import { looksLikeJunkName, pickUnusedIndianName } from "@/lib/indianDogNames";
 import type { UserRole } from "@/lib/supabase/types";
 
 const AHMEDABAD = { lat: 23.0225, lng: 72.5714 };
@@ -64,6 +66,48 @@ export async function archiveDuplicateNamedDogs() {
 
   if (duplicateIds.length > 0) {
     await supabase.from("dogs").update({ archived: true }).in("id", duplicateIds);
+  }
+
+  revalidatePath("/console");
+  revalidatePath("/dogs");
+  revalidatePath("/map");
+  revalidatePath("/");
+}
+
+// Renames any dog still stuck with a filename-derived name (e.g. "Street
+// Dog (Whatsapp Image 2026 09 01 At 19.35.32 (1))" from before this fix)
+// to a proper name, drawn from the same Indian-name pool used for future
+// registrations. Dogs with a real, human-given name are left untouched.
+export async function renameGenericNamedDogs() {
+  const profile = await requireRole(["admin"]);
+  const supabase = await createClient();
+
+  const { data: dogs } = await supabase
+    .from("dogs")
+    .select("id, name")
+    .eq("archived", false);
+
+  const allDogs = dogs ?? [];
+  const usedNames = new Set(allDogs.map((d) => d.name));
+  const targets = allDogs.filter((d) => looksLikeJunkName(d.name));
+
+  for (const dog of targets) {
+    const newName = pickUnusedIndianName(usedNames);
+    usedNames.add(newName);
+
+    const { error } = await supabase
+      .from("dogs")
+      .update({ name: newName })
+      .eq("id", dog.id);
+
+    if (!error) {
+      await supabase.from("timeline_events").insert({
+        dog_id: dog.id,
+        event_type: "profile_updated",
+        description: `${profile.full_name ?? "An admin"} renamed this dog from an auto-generated filename to ${newName}.`,
+        created_by: profile.id,
+      });
+    }
   }
 
   revalidatePath("/console");
@@ -172,19 +216,24 @@ export async function seedRealDogProfiles() {
 
   const bucketPhotos = await listDogPhotos(supabase);
 
-  const { data: existing } = await supabase
+  const { data: existingDogs } = await supabase
     .from("dogs")
-    .select("photo_url")
-    .not("photo_url", "is", null);
-  const usedUrls = new Set((existing ?? []).map((d) => d.photo_url));
+    .select("name, photo_url")
+    .eq("archived", false);
+
+  const usedUrls = new Set((existingDogs ?? []).map((d) => d.photo_url));
+  const usedNames = new Set((existingDogs ?? []).map((d) => d.name));
 
   const newPhotos = bucketPhotos.filter((photo) => !usedUrls.has(photo.url));
 
   for (const photo of newPhotos) {
+    const name = pickUnusedIndianName(usedNames);
+    usedNames.add(name);
+
     const { data: dog, error } = await supabase
       .from("dogs")
       .insert({
-        name: `Street Dog (${photo.label})`,
+        name,
         sex: "unknown",
         photo_url: photo.url,
         status: "well_cared_for",
@@ -211,4 +260,34 @@ export async function seedRealDogProfiles() {
   revalidatePath("/dogs");
   revalidatePath("/map");
   revalidatePath("/");
+}
+
+export async function seedDemoNgos() {
+  const profile = await requireRole(["admin"]);
+  const supabase = await createClient();
+
+  const { data: existing } = await supabase
+    .from("organisations")
+    .select("name")
+    .in(
+      "name",
+      demoNgos.map((n) => n.name),
+    );
+  const existingNames = new Set((existing ?? []).map((n) => n.name));
+
+  const newOrgs = demoNgos
+    .filter((n) => !existingNames.has(n.name))
+    .map((n) => ({
+      name: n.name,
+      type: n.type,
+      verification_status: "verified" as const,
+      created_by: profile.id,
+    }));
+
+  if (newOrgs.length > 0) {
+    await supabase.from("organisations").insert(newOrgs);
+  }
+
+  revalidatePath("/learn");
+  revalidatePath("/console");
 }

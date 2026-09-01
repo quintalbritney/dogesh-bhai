@@ -8,6 +8,7 @@ import {
   seedDemoDogs,
   seedRealDogProfiles,
   refreshStalePhotosFromBucket,
+  renameGenericNamedDogs,
   archiveDuplicateNamedDogs,
 } from "@/app/console/actions";
 import {
@@ -94,6 +95,14 @@ export default async function ConsolePage() {
                 title="Replaces missing or old stock photos with a random photo from the dog-photos bucket"
               >
                 🔄 Refresh stale photos
+              </button>
+            </form>
+            <form action={renameGenericNamedDogs}>
+              <button
+                className="btn-outline btn-sm"
+                title="Renames dogs still stuck with a filename-derived name, like 'Street Dog (WhatsApp Image...)'"
+              >
+                🏷️ Rename generic-named dogs
               </button>
             </form>
             <form action={archiveDuplicateNamedDogs}>

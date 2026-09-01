@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentProfile } from "@/lib/auth";
 import PawPrint from "@/components/PawPrint";
+import { seedDemoNgos } from "@/app/console/actions";
 import type { Organisation } from "@/lib/supabase/types";
 
 const HYGIENE_TIPS = [
@@ -86,12 +88,14 @@ const FAQS = [
 
 export default async function LearnPage() {
   const supabase = await createClient();
+  const profile = await getCurrentProfile();
   const { data: orgs } = await supabase
     .from("organisations")
     .select("*")
     .eq("verification_status", "verified");
 
   const verifiedOrgs = (orgs ?? []) as Organisation[];
+  const isAdmin = profile?.role === "admin";
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-12">
@@ -150,7 +154,14 @@ export default async function LearnPage() {
       </section>
 
       <section className="mt-12">
-        <h2 className="text-xl font-bold text-secondary">📍 Get help nearby</h2>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <h2 className="text-xl font-bold text-secondary">📍 Get help nearby</h2>
+          {isAdmin && verifiedOrgs.length === 0 && (
+            <form action={seedDemoNgos}>
+              <button className="btn-outline btn-sm">🏢 Seed demo NGOs</button>
+            </form>
+          )}
+        </div>
         <p className="mt-1 text-sm text-muted">
           Looking for the closest clinic instead?{" "}
           <Link href="/vets" className="underline">

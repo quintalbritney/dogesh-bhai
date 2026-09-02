@@ -16,12 +16,18 @@ export default async function VerificationQueuePage() {
 
   const pending = (events ?? []) as HealthEvent[];
   const dogIds = [...new Set(pending.map((e) => e.dog_id))];
+  const submitterIds = [...new Set(pending.map((e) => e.submitted_by))];
 
-  const { data: dogsList } =
+  const [{ data: dogsList }, { data: submitters }] = await Promise.all([
     dogIds.length > 0
-      ? await supabase.from("dogs").select("*").in("id", dogIds)
-      : { data: [] as Dog[] };
+      ? supabase.from("dogs").select("*").in("id", dogIds)
+      : Promise.resolve({ data: [] as Dog[] }),
+    submitterIds.length > 0
+      ? supabase.from("profiles").select("id, full_name").in("id", submitterIds)
+      : Promise.resolve({ data: [] as { id: string; full_name: string | null }[] }),
+  ]);
   const dogsById = new Map((dogsList ?? []).map((d) => [d.id, d as Dog]));
+  const submittersById = new Map((submitters ?? []).map((p) => [p.id, p]));
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-10">
@@ -34,6 +40,7 @@ export default async function VerificationQueuePage() {
       <ul className="mt-6 flex flex-col gap-3">
         {pending.map((event) => {
           const dog = dogsById.get(event.dog_id);
+          const submitter = submittersById.get(event.submitted_by);
           return (
             <li key={event.id} className="card p-3 text-sm">
               <div className="flex items-center justify-between gap-2">
@@ -46,6 +53,9 @@ export default async function VerificationQueuePage() {
                   </Link>
                 )}
               </div>
+              <p className="text-xs text-muted">
+                Added by {submitter?.full_name ?? "a volunteer"}
+              </p>
               {event.provider && (
                 <p className="text-muted">Provider: {event.provider}</p>
               )}

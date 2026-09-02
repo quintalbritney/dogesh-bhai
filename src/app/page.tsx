@@ -4,7 +4,10 @@ import { createClient } from "@/lib/supabase/server";
 import PawPrint from "@/components/PawPrint";
 import PhotoCarousel from "@/components/PhotoCarousel";
 import { listDogPhotos, pickRandom } from "@/lib/dogPhotoStorage";
-import type { Dog } from "@/lib/supabase/types";
+import { todayISODate } from "@/lib/dates";
+import { completeCareTask, markCareCheckedNoActionNeeded } from "@/app/dogs/actions";
+import { decideHealthEventVerification } from "@/app/dogs/health-actions";
+import type { CareSchedule, CareTask, Dog, HealthEvent } from "@/lib/supabase/types";
 
 const STATUS_DOT: Record<string, string> = {
   well_cared_for: "🟢",
@@ -379,6 +382,66 @@ export default async function HomePage() {
     );
   }
 
+  const canVerify = profile.role === "vet" || profile.role === "admin";
+  const today = todayISODate();
+
+  const [{ data: myAssignments }, { data: pendingEvents }] = await Promise.all([
+    supabase
+      .from("caregiver_assignments")
+      .select("dog_id")
+      .eq("user_id", profile.id)
+      .eq("status", "active"),
+    canVerify
+      ? supabase
+          .from("health_events")
+          .select("*")
+          .eq("verification_status", "community")
+          .order("created_at", { ascending: true })
+          .limit(5)
+      : Promise.resolve({ data: [] as HealthEvent[] }),
+  ]);
+
+  const myDogIds = (myAssignments ?? []).map((a) => a.dog_id);
+
+  const [{ data: myDogsList }, { data: mySchedules }] = await Promise.all([
+    myDogIds.length > 0
+      ? supabase.from("dogs").select("*").in("id", myDogIds)
+      : Promise.resolve({ data: [] as Dog[] }),
+    myDogIds.length > 0
+      ? supabase.from("care_schedules").select("*").in("dog_id", myDogIds)
+      : Promise.resolve({ data: [] as CareSchedule[] }),
+  ]);
+  const myDogsById = new Map((myDogsList ?? []).map((d) => [d.id, d as Dog]));
+
+  const myCareToday = await Promise.all(
+    ((mySchedules ?? []) as CareSchedule[]).map(async (schedule) => {
+      const { data: tasks } = await supabase
+        .from("care_tasks")
+        .select("*")
+        .eq("schedule_id", schedule.id)
+        .eq("due_date", today);
+      const done = ((tasks ?? []) as CareTask[]).some(
+        (t) => t.status === "completed" || t.status === "checked_no_action_needed",
+      );
+      return { schedule, dog: myDogsById.get(schedule.dog_id), done };
+    }),
+  );
+  const careDueToday = myCareToday.filter((r) => !r.done && r.dog);
+
+  const pending = (pendingEvents ?? []) as HealthEvent[];
+  const verifyDogIds = [...new Set(pending.map((e) => e.dog_id))];
+  const verifySubmitterIds = [...new Set(pending.map((e) => e.submitted_by))];
+  const [{ data: verifyDogsList }, { data: verifySubmitters }] = await Promise.all([
+    verifyDogIds.length > 0
+      ? supabase.from("dogs").select("id, name, pawpass_id").in("id", verifyDogIds)
+      : Promise.resolve({ data: [] as { id: string; name: string; pawpass_id: string }[] }),
+    verifySubmitterIds.length > 0
+      ? supabase.from("profiles").select("id, full_name").in("id", verifySubmitterIds)
+      : Promise.resolve({ data: [] as { id: string; full_name: string | null }[] }),
+  ]);
+  const verifyDogsById = new Map((verifyDogsList ?? []).map((d) => [d.id, d]));
+  const verifySubmittersById = new Map((verifySubmitters ?? []).map((p) => [p.id, p]));
+
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
       <h1 className="text-2xl font-semibold">
@@ -399,6 +462,101 @@ export default async function HomePage() {
           <p className="text-sm text-muted">Browse the community</p>
         </Link>
       </div>
+
+      {canVerify && (
+        <div className="mt-10">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold">Verification queue</h2>
+            <Link href="/verify" className="text-sm font-medium text-primary underline">
+              See all →
+            </Link>
+          </div>
+          {pending.length === 0 ? (
+            <p className="mt-2 text-sm text-muted">Nothing waiting on you.</p>
+          ) : (
+            <ul className="mt-3 flex flex-col gap-2">
+              {pending.map((event) => {
+                const dog = verifyDogsById.get(event.dog_id);
+                const submitter = verifySubmittersById.get(event.submitted_by);
+                return (
+                  <li key={event.id} className="card flex items-center justify-between gap-2 p-3 text-sm">
+                    <div>
+                      <p className="font-medium capitalize">
+                        {event.type.replace("_", " ")}
+                        {dog && <> for {dog.name}</>}
+                      </p>
+                      <p className="text-xs text-muted">
+                        Added by {submitter?.full_name ?? "a volunteer"}
+                      </p>
+                    </div>
+                    {dog && (
+                      <div className="flex shrink-0 gap-2">
+                        <form
+                          action={decideHealthEventVerification.bind(
+                            null,
+                            event.id,
+                            dog.id,
+                            dog.pawpass_id,
+                            "verified",
+                          )}
+                        >
+                          <button className="btn-primary btn-sm">Verify</button>
+                        </form>
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {myCareToday.length > 0 && (
+        <div className="mt-10">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold">Today&apos;s care</h2>
+            <Link href="/tasks" className="text-sm font-medium text-primary underline">
+              See all →
+            </Link>
+          </div>
+          {careDueToday.length === 0 ? (
+            <p className="mt-2 text-sm text-muted">
+              🟢 Every dog you care for is sorted for today.
+            </p>
+          ) : (
+            <ul className="mt-3 flex flex-col gap-2">
+              {careDueToday.map(({ schedule, dog }) =>
+                dog ? (
+                  <li key={schedule.id} className="card flex items-center justify-between gap-2 p-3 text-sm">
+                    <span>
+                      {dog.name}, {schedule.task_type}
+                    </span>
+                    <div className="flex shrink-0 gap-2">
+                      <form
+                        action={completeCareTask.bind(null, schedule.id, dog.id, dog.pawpass_id, undefined)}
+                      >
+                        <button className="btn-primary btn-sm">Mark as fed ❤️</button>
+                      </form>
+                      <form
+                        action={markCareCheckedNoActionNeeded.bind(
+                          null,
+                          schedule.id,
+                          dog.id,
+                          dog.pawpass_id,
+                          undefined,
+                        )}
+                      >
+                        <button className="btn-outline btn-sm">Just checking in</button>
+                      </form>
+                    </div>
+                  </li>
+                ) : null,
+              )}
+            </ul>
+          )}
+        </div>
+      )}
 
       {dogs.length > 0 && (
         <div className="mt-10">

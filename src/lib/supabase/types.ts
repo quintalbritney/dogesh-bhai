@@ -103,6 +103,23 @@ export type Vet = {
   created_at: string;
 };
 
+export type ServiceRequestType = "vaccination" | "sterilisation";
+export type ServiceRequestStatus = "open" | "claimed" | "completed" | "cancelled";
+
+export type ServiceRequest = {
+  id: string;
+  dog_id: string;
+  type: ServiceRequestType;
+  status: ServiceRequestStatus;
+  notes: string | null;
+  requested_by: string;
+  claimed_by: string | null;
+  claimed_by_org_id: string | null;
+  claimed_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+};
+
 export type LocationPing = {
   id: string;
   dog_id: string;
@@ -306,6 +323,15 @@ export type Database = {
           created_by: string;
         },
         Partial<Vet>
+      >;
+      service_requests: TableDef<
+        ServiceRequest,
+        Partial<ServiceRequest> & {
+          dog_id: string;
+          type: ServiceRequestType;
+          requested_by: string;
+        },
+        Partial<ServiceRequest>
       >;
     };
     Views: Record<string, never>;

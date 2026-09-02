@@ -41,6 +41,9 @@ export default async function NavBar() {
               <Link href="/vets" className="hover:text-accent">
                 Vets
               </Link>
+              <Link href="/requests" className="hover:text-accent">
+                Requests
+              </Link>
               <Link href="/tasks" className="hover:text-accent">
                 Today&apos;s care
               </Link>

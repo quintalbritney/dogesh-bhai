@@ -33,6 +33,12 @@ import {
   setMunicipalRegistration,
   setCollarAttached,
 } from "@/app/dogs/pipeline-actions";
+import {
+  createServiceRequest,
+  claimServiceRequest,
+  completeServiceRequest,
+  cancelServiceRequest,
+} from "@/app/requests/actions";
 import VerificationBadge from "@/components/VerificationBadge";
 import type {
   CaregiverAssignment,
@@ -43,6 +49,7 @@ import type {
   HealthEvent,
   MedicalCase,
   Profile,
+  ServiceRequest,
   TimelineEvent,
 } from "@/lib/supabase/types";
 
@@ -171,6 +178,14 @@ export default async function DogPassportPage({
   const canManageMilestones =
     isAdmin || (profile.role === "ngo" && profile.org_id === dog.assigned_org_id);
   const dogMilestones = milestones as DogRegistrationMilestone | null;
+
+  const { data: serviceRequestsList } = await supabase
+    .from("service_requests")
+    .select("*")
+    .eq("dog_id", dog.id)
+    .order("created_at", { ascending: false });
+  const serviceRequests = (serviceRequestsList ?? []) as ServiceRequest[];
+  const isNgo = profile.role === "ngo";
 
   const activeAssignments = (assignments ?? []) as unknown as (CaregiverAssignment & {
     profiles: Pick<Profile, "full_name"> | null;
@@ -409,6 +424,67 @@ export default async function DogPassportPage({
             )}
           </li>
         </ul>
+      </section>
+
+      <section className="mt-8">
+        <h2 className="text-xl font-bold">Vaccination &amp; sterilisation requests</h2>
+        <ul className="mt-2 flex flex-col gap-2 text-sm">
+          {serviceRequests.map((request) => (
+            <li key={request.id} className="card p-3">
+              <div className="flex items-center justify-between gap-2">
+                <p className="font-medium capitalize">
+                  {request.type === "vaccination" ? "🩺" : "✂️"} {request.type}
+                </p>
+                <span className="text-xs text-muted">
+                  {request.status === "open" && "⬜ Open"}
+                  {request.status === "claimed" && "🟡 Claimed by an NGO"}
+                  {request.status === "completed" && "🟢 Completed"}
+                  {request.status === "cancelled" && "⚫ Cancelled"}
+                </span>
+              </div>
+              {request.notes && <p className="mt-1 text-muted">{request.notes}</p>}
+              <div className="mt-2 flex gap-2">
+                {isNgo && request.status === "open" && (
+                  <form action={claimServiceRequest.bind(null, request.id)}>
+                    <button className="btn-primary btn-sm">Approve &amp; take it up</button>
+                  </form>
+                )}
+                {request.claimed_by === profile.id && request.status === "claimed" && (
+                  <form action={completeServiceRequest.bind(null, request.id)}>
+                    <button className="btn-primary btn-sm">Mark completed</button>
+                  </form>
+                )}
+                {(request.status === "open" || request.status === "claimed") &&
+                  (isAdmin || request.requested_by === profile.id || request.claimed_by === profile.id) && (
+                    <form action={cancelServiceRequest.bind(null, request.id)}>
+                      <button className="btn-outline btn-sm">Cancel</button>
+                    </form>
+                  )}
+              </div>
+            </li>
+          ))}
+          {serviceRequests.length === 0 && (
+            <p className="text-muted">No requests yet for this dog.</p>
+          )}
+        </ul>
+
+        <form
+          action={createServiceRequest.bind(null, dog.id, pawpassId)}
+          className="mt-3 flex flex-col gap-2 card p-3"
+        >
+          <p className="text-sm font-medium">Request vaccination or sterilisation</p>
+          <select name="type" required className="input" defaultValue="">
+            <option value="" disabled>
+              Type…
+            </option>
+            <option value="vaccination">Vaccination</option>
+            <option value="sterilisation">Sterilisation</option>
+          </select>
+          <input name="notes" placeholder="Anything an NGO should know (optional)" className="input" />
+          <SubmitButton pendingText="Requesting…" className="btn-outline self-start">
+            Submit request
+          </SubmitButton>
+        </form>
       </section>
 
       <details className="mt-4 text-sm text-muted">

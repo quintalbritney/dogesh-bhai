@@ -7,7 +7,8 @@ import { listDogPhotos, pickRandom } from "@/lib/dogPhotoStorage";
 import { todayISODate } from "@/lib/dates";
 import { completeCareTask, markCareCheckedNoActionNeeded } from "@/app/dogs/actions";
 import { decideHealthEventVerification } from "@/app/dogs/health-actions";
-import type { CareSchedule, CareTask, Dog, HealthEvent } from "@/lib/supabase/types";
+import { claimServiceRequest } from "@/app/requests/actions";
+import type { CareSchedule, CareTask, Dog, HealthEvent, ServiceRequest } from "@/lib/supabase/types";
 
 const STATUS_DOT: Record<string, string> = {
   well_cared_for: "🟢",
@@ -442,6 +443,23 @@ export default async function HomePage() {
   const verifyDogsById = new Map((verifyDogsList ?? []).map((d) => [d.id, d]));
   const verifySubmittersById = new Map((verifySubmitters ?? []).map((p) => [p.id, p]));
 
+  const isNgo = profile.role === "ngo";
+  const { data: openServiceRequests } = isNgo
+    ? await supabase
+        .from("service_requests")
+        .select("*")
+        .eq("status", "open")
+        .order("created_at", { ascending: true })
+        .limit(5)
+    : { data: [] as ServiceRequest[] };
+  const openRequests = (openServiceRequests ?? []) as ServiceRequest[];
+  const requestDogIds = [...new Set(openRequests.map((r) => r.dog_id))];
+  const { data: requestDogsList } =
+    requestDogIds.length > 0
+      ? await supabase.from("dogs").select("id, name, pawpass_id").in("id", requestDogIds)
+      : { data: [] as { id: string; name: string; pawpass_id: string }[] };
+  const requestDogsById = new Map((requestDogsList ?? []).map((d) => [d.id, d]));
+
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
       <h1 className="text-2xl font-semibold">
@@ -504,6 +522,39 @@ export default async function HomePage() {
                         </form>
                       </div>
                     )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {isNgo && (
+        <div className="mt-10">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold">Open requests for your NGO</h2>
+            <Link href="/requests" className="text-sm font-medium text-primary underline">
+              See all →
+            </Link>
+          </div>
+          {openRequests.length === 0 ? (
+            <p className="mt-2 text-sm text-muted">
+              No open vaccination or sterilisation requests right now.
+            </p>
+          ) : (
+            <ul className="mt-3 flex flex-col gap-2">
+              {openRequests.map((request) => {
+                const dog = requestDogsById.get(request.dog_id);
+                return (
+                  <li key={request.id} className="card flex items-center justify-between gap-2 p-3 text-sm">
+                    <p className="font-medium">
+                      {request.type === "vaccination" ? "🩺 Vaccination" : "✂️ Sterilisation"}
+                      {dog && <> for {dog.name}</>}
+                    </p>
+                    <form action={claimServiceRequest.bind(null, request.id)}>
+                      <button className="btn-primary btn-sm">Approve &amp; take it up</button>
+                    </form>
                   </li>
                 );
               })}
